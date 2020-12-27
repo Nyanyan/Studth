@@ -56,7 +56,7 @@ def phase_search(phase, idxes, depth, dis):
             continue
         phase_solution.append(twist)
         sol = phase_search(phase, n_idxes, depth, n_dis)
-        if phase == 1 and sol: # only one solution needed
+        if sol: # only one solution needed
             return sol
         res.extend(sol)
         if len(res) > 50:
@@ -70,6 +70,8 @@ def solver(stickers):
     res = []
     l = 27
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
+    print(s_cp)
+    print(s_ep)
     while True:
         search_lst = [[s_cp, s_co, s_ep, s_eo, []]]
         n_search_lst = []
@@ -150,4 +152,5 @@ prun_phase1_ep_ep = []
 with open('prun_phase1_ep_ep.csv', mode='r') as f:
     for line in map(str.strip, f):
         prun_phase1_ep_ep.append([int(i) for i in line.replace('\n', '').split(',')])
-print('initialize done')
+
+print('solver initialized')

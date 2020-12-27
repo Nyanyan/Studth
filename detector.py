@@ -26,7 +26,9 @@ def detector():
     color_low = [[-1 for _ in range(3)] for _ in range(6)]
     color_hgh = [[-1 for _ in range(3)] for _ in range(6)]
     #circlecolor = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (0, 170, 255), (0, 255, 255), (255, 255, 255)]
-    vals = [[-1, -1, -1] for _ in range(54)]
+    vals = [[0, 0, 0] for _ in range(54)]
+    for _ in range(20):
+        ret, frame = capture.read()
     for idx in range(6):
         for i in range(4):
             grab(i)
@@ -42,7 +44,18 @@ def detector():
             coord_idx = val_coord_idx
             x = center[0] + dx[coord_idx] * d
             y = center[1] + dy[coord_idx] * d
-            vals[val_idx] = [i for i in hsv[y][x]]
+            tmp = [[] for _ in range(3)]
+            for dr in range(9):
+                for i in range(3):
+                    tmp[i].append(hsv[y + dy[dr]][x + dy[dr]][i])
+                    if i == 0 and tmp[i][-1] > 150:
+                        tmp[i][-1] -= 180
+            for i in range(3):
+                tmp[i].sort()
+            for i in range(3):
+                vals[val_idx][i] = sum(tmp[i][2:7]) / 5
+                if i == 0 and vals[val_idx][i] < 0:
+                    vals[val_idx][i] += 180
         '''
         if idx == 5:
             for dr in range(9):
@@ -63,11 +76,18 @@ def detector():
             coord_idx = val_coord_idx
             x = center[0] + dx[coord_idx] * d
             y = center[1] + dy[coord_idx] * d
+            tmp = [[] for _ in range(3)]
             for dr in range(9):
                 for i in range(3):
-                    vals[val_idx][i] += hsv[y + dy[dr]][x + dy[dr]][i]
+                    tmp[i].append(hsv[y + dy[dr]][x + dy[dr]][i])
+                    if i == 0 and tmp[i][-1] > 150:
+                        tmp[i][-1] -= 180
             for i in range(3):
-                vals[val_idx][i] /= 9
+                tmp[i].sort()
+            for i in range(3):
+                vals[val_idx][i] = sum(tmp[i][2:7]) / 5
+                if i == 0 and vals[val_idx][i] < 0:
+                    vals[val_idx][i] += 180
         for i in range(4):
             grab(i)
         sleep(0.2)
@@ -84,13 +104,17 @@ def detector():
         #print(vals[center_stickers[color]])
         color_low[color] = [j - offset[i] for i, j in enumerate(vals[center_stickers[color]])]
         color_hgh[color] = [j + offset[i] for i, j in enumerate(vals[center_stickers[color]])]
+        color_low[color][0] %= 180
+        color_hgh[color][0] %= 180
     res = [-1 for _ in range(54)]
     for i in range(54):
         for color in reversed(range(6)):
             for k in range(3):
                 if color == 0 and k == 0:
                     continue
-                if not color_low[color][k] <= vals[i][k] <= color_hgh[color][k]:
+                if color_low[color][k] < color_hgh[color][k] and not color_low[color][k] <= vals[i][k] <= color_hgh[color][k]:
+                    break
+                if color_low[color][k] > color_hgh[color][k] and color_hgh[color][k] <= vals[i][k] <= color_low[color][k]:
                     break
             else:
                 res[i] = color
@@ -116,15 +140,6 @@ rotate_cube = [
     [[[0, 1, 2000]], [[0, 1, 1]], [[0, 1, 1000]], [[0, 0, 2000], [1, 0, 2000]], [[0, 1, 0], [1, 1, 1]], [[0, 0, 1000], [1, 0, 1000]], [[1, 1, 2000]], [[1, 1, 0]], [[1, 1, 1000]], [[0, 1, 2000]], [[0, 1, 1]], [[0, 1, 1000]], [[0, 0, 2000], [1, 0, 2000]], [[0, 1, 0], [1, 1, 1]], [[0, 0, 1000], [1, 0, 1000]], [[1, 1, 2000]], [[1, 1, 0]], [[1, 1, 1000]]]
 ]
 center_stickers = (4, 13, 22, 31, 40, 49)
-offset = (10, 160, 160)
+offset = (12, 120, 120)
 
 print('detector initialized')
-
-'''
-colors[0] = ['', '', 'w', 'g', '', '', '', '']
-colors[1] = ['', '', 'o', 'o', '', '', '', '']
-colors[2] = ['o', 'y', 'g', 'g', 'w', 'r', 'w', 'b']
-colors[3] = ['o', 'b', 'y', 'y', 'g', 'r', 'w', 'b']
-colors[4] = ['', '', 'r', 'r', '', '', '', '']
-colors[5] = ['', '', 'y', 'b', '', '', '', '']
-'''
