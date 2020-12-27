@@ -1,15 +1,18 @@
 #include <Servo.h>
 
 /* for arm 0 and 1 */
-const int grb[2] = {100, 95};
-const int rls[2] = {80, 80};
-const int rot_l[2] = {185, 185};
-const int rot_r[2] = {90, 90};
+const int grb[2] = {100, 100};
+const int rls[2] = {75, 70};
+const int rls_big[2] = {30, 30};
+const int rot_l[2] = {180, 180};
+const int rot_r[2] = {85, 85};
+
 /* for arm 2 and 3 
 const int grb[2] = {95, 100};
-const int rls[2] = {80, 80};
+const int rls[2] = {65, 80};
+const int rls_big[2] = {30, 30};
 const int rot_l[2] = {180, 180};
-const int rot_r[2] = {90, 90};
+const int rot_r[2] = {75, 85};
 */
 
 char buf[30];
@@ -34,6 +37,10 @@ void grab_arm(int num) {
   arm_grab[num].write(grb[num]);
 }
 
+void release_big_arm(int num) {
+  arm_grab[num].write(rls_big[num]);
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -55,6 +62,7 @@ void loop() {
         data[1] = atoi(strtok(NULL, " "));
         if (data[1] == 1000) grab_arm(data[0]);
         else if (data[1] == 2000) release_arm(data[0]);
+        else if (data[1] == 3000) release_big_arm(data[0]);
         else move_motor(data[0], data[1]);
         idx = 0;
       }
