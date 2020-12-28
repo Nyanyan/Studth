@@ -56,13 +56,14 @@ def detector():
                 vals[val_idx][i] = sum(tmp[i][2:7]) / 5
                 if i == 0 and vals[val_idx][i] < 0:
                     vals[val_idx][i] += 180
-        '''
-        if idx == 5:
+        
+        if idx == 0:
             for dr in range(9):
                 cv2.circle(frame, (center[0] + dx[dr] * d, center[1] + dy[dr] * d), 2, (0, 0, 0), 2)
             cv2.imshow('frame', frame)
             cv2.waitKey(0)
-        '''
+            cv2.destroyAllWindows()
+        
         grab_half(0)
         sleep(0.3)
         release_big_half(1)
@@ -121,7 +122,7 @@ def detector():
                 break
     return res
 
-d = 45
+d = 40
 size_x = 130
 size_y = 100
 center = [size_x // 2, size_y // 2]

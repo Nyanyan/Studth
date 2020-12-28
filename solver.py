@@ -72,6 +72,8 @@ def solver(stickers):
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
     print(s_cp)
     print(s_ep)
+    if -1 in s_cp or -1 in s_co or -1 in s_ep or -1 in s_eo:
+        raise Exception('Error!')
     while True:
         search_lst = [[s_cp, s_co, s_ep, s_eo, []]]
         n_search_lst = []
