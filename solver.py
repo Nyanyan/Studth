@@ -84,7 +84,7 @@ def phase_search(phase, idxes, depth, dis):
 def solver(stickers):
     global phase_solution, phase_solution_notation
     res = []
-    l = 30
+    l = 35
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
     s_dir = 0
     print(s_cp)
@@ -181,6 +181,7 @@ print('solver initialized')
 
 
 ''' TEST '''
+from time import time
 w, g, r, b, o, y = range(6)
 arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
 #arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R
@@ -188,4 +189,6 @@ arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w
 #arr = [w, w, w, w, w, w, o, o, b, g, g, w, r, g, g, w, g, g, r, g, g, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, o, o, y, o, o, w, o, o, o, g, y, y, y, y, y, y, y, y] # F U F' U'
 #arr = [y, y, w, w, w, y, w, y, w, o, o, g, g, g, b, r, r, b, r, b, r, o, r, r, o, g, g, b, r, b, g, b, b, o, g, o, r, b, b, r, o, o, g, o, g, y, w, y, w, y, w, y, y, w] # U R2 L2 D2 F2 U' L2
 #arr = [y, y, g, w, w, b, w, y, b, o, o, y, g, g, w, r, r, w, o, o, r, g, r, b, g, r, r, w, r, b, y, b, b, w, g, o, r, b, b, r, o, o, g, o, g, y, w, o, w, y, g, y, y, b] # U R2 L2 D2 F2 U' L2 R
+strt = time()
 print('solved', solver(arr))
+print('time:', time() - strt, 'sec')
