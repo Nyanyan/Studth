@@ -111,11 +111,12 @@ def solver(stickers):
                             n_eo = [i for i in eo]
                             n_dir = direction
                             n_solution = [i for i in last_solution]
-                            for twist, twist_arm in zip(solution_notation, solution):
+                            for twist in solution_notation:
                                 n_cp = move_cp(n_cp, twist)
                                 n_co = move_co(n_co, twist)
                                 n_ep = move_ep(n_ep, twist)
                                 n_eo = move_eo(n_eo, twist)
+                            for twist_arm in solution:
                                 n_dir = move_dir(n_dir, twist_arm)
                             n_solution.extend(solution)
                             n_search_lst.append([n_cp, n_co, n_ep, n_eo, n_dir, n_solution])
@@ -182,6 +183,9 @@ print('solver initialized')
 ''' TEST '''
 w, g, r, b, o, y = range(6)
 arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
-#arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
 #arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R
+#arr = [w, w, o, w, w, g, w, w, g, g, g, y, g, g, w, g, g, g, r, r, w, b, r, r, w, r, r, b, r, r, b, b, b, b, b, b, b, o, o, o, o, o, o, o, o, y, y, r, y, y, y, y, y, y]  # R U R' U'
+#arr = [w, w, w, w, w, w, o, o, b, g, g, w, r, g, g, w, g, g, r, g, g, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, o, o, y, o, o, w, o, o, o, g, y, y, y, y, y, y, y, y] # F U F' U'
+#arr = [y, y, w, w, w, y, w, y, w, o, o, g, g, g, b, r, r, b, r, b, r, o, r, r, o, g, g, b, r, b, g, b, b, o, g, o, r, b, b, r, o, o, g, o, g, y, w, y, w, y, w, y, y, w] # U R2 L2 D2 F2 U' L2
+#arr = [y, y, g, w, w, b, w, y, b, o, o, y, g, g, w, r, r, w, o, o, r, g, r, b, g, r, r, w, r, b, y, b, b, w, g, o, r, b, b, r, o, o, g, o, g, y, w, o, w, y, g, y, y, b] # U R2 L2 D2 F2 U' L2 R
 print('solved', solver(arr))
