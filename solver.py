@@ -86,6 +86,14 @@ def solver(stickers):
     res = []
     l = 35
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
+    if s_cp.count(-1) == 1 and len((set(range(8)) - set(s_cp))) == 1:
+        s_cp[s_cp.index(-1)] = list(set(range(8)) - set(s_cp))[0]
+    if s_ep.count(-1) == 1 and len((set(range(12)) - set(s_ep))) == 1:
+        s_ep[s_ep.index(-1)] = list(set(range(12)) - set(s_ep))[0]
+    if s_co.count(-1) == 1:
+        s_co[s_co.index(-1)] = (3 - (sum(s_co) + 1) % 3) % 3
+    if s_eo.count(-1) == 1:
+        s_eo[s_eo.index(-1)] = (2 - (sum(s_eo) + 1) % 2) % 2
     s_dir = 0
     print(s_cp)
     print(s_ep)

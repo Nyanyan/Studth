@@ -1,8 +1,8 @@
 # coding:utf-8
 from basic_functions import *
-#from solver import solver
+from solver import solver
 from controller import controller
-#from detector import detector
+from detector import detector
 from time import sleep, time
 
 
@@ -10,20 +10,15 @@ while True:
     s = input()
     if s == 'exit':
         exit()
-    #stickers = detector()
-    #for i in range(6):
-    #    print(stickers[i * 9:i * 9 + 9])
-
-    #sleep(5)
-    #solution = [0, 3, 13, 6, 17, 2, 11] # R L F2 U B' R' D'
-    #controller(solution)
-    #exit()
+    stickers = detector()
+    for i in range(6):
+        print(stickers[i * 9:i * 9 + 9])
     try:
         # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F' solved in 55.71 sec
         # L U F' U' F D' R' U' D2 R B2 R D2 F2 L' F2 U2 R D2 U' solved in 51.26 sec
         # L B R2 D2 B R2 D2 B' D2 F L2 F U R' D U2 L D' U2 48.25 sec
         # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2 38.05 sec
-        solution = [3, 8, 13, 0, 11, 0, 8, 3, 8, 5, 6, 4, 12, 6, 2, 12, 7, 10, 5, 7, 5, 7, 12, 10, 1, 7, 10, 1] #solver(stickers)
+        solution = solver(stickers)
         print(solution)
         strt = time()
         controller(solution)
