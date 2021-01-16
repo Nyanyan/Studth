@@ -160,6 +160,14 @@ can_rotate = [
     (0, 1, 1), # 23
 ]
 
+dir_type = []
+for i in can_rotate:
+    if i == (1, 0, 1):
+        dir_type.append(0)
+    elif i == (0, 1, 1):
+        dir_type.append(1)
+    else:
+        dir_type.append(2)
 
 corner_places = [(0, 36, 29), (2, 27, 20), (8, 18, 11), (6, 9, 38), (45, 44, 15), (47, 17, 24), (53, 26, 33), (51, 35, 42)]
 corner_colors = [(0, 4, 3),   (0, 3, 2),   (0, 2, 1),   (0, 1, 4),  (5, 4, 1),    (5, 1, 2),    (5, 2, 3),    (5, 3, 4)   ]
