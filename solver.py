@@ -130,8 +130,8 @@ def solver(stickers):
             print('max len', l, 'phase', phase, 'depth', depth, 'found solutions', len(search_lst))
         if search_lst:
             res = [i for i in search_lst[-1][5]]
-        else:
-            break
+        #else:
+        break
     return res
 
 phase_solution = []
