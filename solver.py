@@ -95,6 +95,8 @@ def phase_search(phase, idxes, depth, dis, pre_direction):
                 continue
             if twist // 6 == l1_twist // 6 == l2_twist // 6: # don't turn opposite face 3 times
                 continue
+            if twist // 6 == l1_twist // 6 and twist > l1_twist: # for example, permit R L but not L R
+                continue
             if not twist in candidate[phase]:
                 continue
             if not actual_face[direction][twist_idx // 3] in can_twist:
