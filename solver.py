@@ -59,18 +59,16 @@ def search_idx(phase, idxes):
 def phase_search(phase, idxes, depth, dis):
     global phase_solution, cnt
     cnt += 1
-    if depth == 0:
-        if dis == 0:
-            pre_idx = search_idx(phase, idxes)
-            if pre_idx != -1:
-                print(pre_idx)
-                res = [i for i in phase_solution]
-                res.extend(pre_ans_ans[phase][pre_idx])
-                res_notation = [i for i in phase_solution_notation]
-                res_notation.extend(pre_ans_not[phase][pre_idx])
-                return [[res, res_notation]]
-        return []
-    
+    if dis == 0:
+        pre_idx = search_idx(phase, idxes)
+        print(pre_idx)
+        res = [i for i in phase_solution]
+        res.extend(pre_ans_ans[phase][pre_idx])
+        res_notation = [i for i in phase_solution_notation]
+        res_notation.extend(pre_ans_not[phase][pre_idx])
+        return [[res, res_notation]]
+    if dis == 0:
+        print('aaaaaaaaaaaaaaaaa', depth)
 
     #print(dis, depth, phase_solution_notation)
     res = []
@@ -140,9 +138,9 @@ def solver(stickers):
                 dis = distance(phase, idxes)
                 phase_solution = []
                 phase_solution_notation = []
-                strt_depth = max(0, dis - max_pre_ans[phase])
+                strt_depth = dis
                 for depth in range(strt_depth, l - len(last_solution)):
-                    #print(depth)
+                    print(depth)
                     sol = phase_search(phase, idxes, depth, dis)
                     if sol:
                         for solution, solution_notation in sol:
