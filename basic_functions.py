@@ -110,7 +110,7 @@ actual_face = [
     (2, 3, 1, 0), # 13
     (5, 4, 1, 0), # 14
     (3, 2, 1, 0), # 15
-    (0, 1, 4, 5), # 16
+    (0, 1, 2, 3), # 16
     (5, 4, 2, 3), # 17
     (1, 0, 2, 3), # 18
     (4, 5, 2, 3), # 19
@@ -127,6 +127,8 @@ candidate = [
     set((0, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17)), # phase0
     set((1, 4, 6, 7, 8, 9, 10, 11, 13, 16))                # phase1
 ]
+
+rev_twists = (2, 1, 0, 5, 4, 3, 8, 7, 6, 11, 10, 9, 14, 13, 12, 17, 16, 15)
 
 twist2phase_idx = [
     (0, -1, 1, 2, -1, 3, 4, 5, 6, 7, 8, 9, 10, -1, 11, 12, -1, 13), # phase0
@@ -168,6 +170,8 @@ for i in can_rotate:
         dir_type.append(1)
     else:
         dir_type.append(2)
+
+max_pre_ans = (5, 6)
 
 corner_places = [(0, 36, 29), (2, 27, 20), (8, 18, 11), (6, 9, 38), (45, 44, 15), (47, 17, 24), (53, 26, 33), (51, 35, 42)]
 corner_colors = [(0, 4, 3),   (0, 3, 2),   (0, 2, 1),   (0, 1, 4),  (5, 4, 1),    (5, 1, 2),    (5, 2, 3),    (5, 3, 4)   ]
@@ -292,6 +296,16 @@ def move_dir(direction, arm_twist):
             return change_direction_x[direction]
         else: # z
             return direction // 4 * 4 + (direction % 4 + 1) % 4
+    return direction
+
+def rev_move_dir(direction, arm_twist):
+    if arm_twist >= 12:
+        if arm_twist == 12: # x
+            for _ in range(3):
+                direction = change_direction_x[direction]
+        else: # z
+            for _ in range(3):
+                direction = direction // 4 * 4 + (direction % 4 + 1) % 4
     return direction
 
 def cmb(n, r):

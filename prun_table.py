@@ -20,6 +20,7 @@ def table_phase0():
     que = deque([[solved1, solved2, 0, i, True] for i in range(24)])
     for i in range(3):
         table[i][solved1][solved2] = 0
+    sorted_candidate = sorted(list(candidate[0]))
     cnt = 0
     while que:
         cnt += 1
@@ -27,7 +28,7 @@ def table_phase0():
             print(cnt, len(que))
         idx1, idx2, cost, direction, last_rotated = que.popleft()
         n_cost = cost + 1
-        for twist_idx, twist in enumerate(candidate[0]):
+        for twist_idx, twist in sorted_candidate:
             if not can_rotate[direction][twist // 6]:
                 continue
             n_dirs = [direction]
@@ -69,7 +70,7 @@ def table_phase0():
             print(cnt, len(que))
         idx1, idx2, cost, direction, last_rotated = que.popleft()
         n_cost = cost + 1
-        for twist_idx, twist in enumerate(candidate[0]):
+        for twist_idx, twist in sorted_candidate:
             n_last_rotated = False
             if not can_rotate[direction][twist // 6]:
                 continue
@@ -112,6 +113,7 @@ def table_phase1():
     que = deque([[solved1, solved2, 0, i, True] for i in range(24)])
     for i in range(3):
         table[i][solved1][solved2] = 0
+    sorted_candidate = sorted(list(candidate[1]))
     cnt = 0
     while que:
         cnt += 1
@@ -119,7 +121,7 @@ def table_phase1():
             print(cnt, len(que))
         idx1, idx2, cost, direction, last_rotated = que.popleft()
         n_cost = cost + 1
-        for twist_idx, twist in enumerate(candidate[1]):
+        for twist_idx, twist in sorted_candidate:
             if not can_rotate[direction][twist // 6]:
                 continue
             n_dirs = [direction]
@@ -161,7 +163,7 @@ def table_phase1():
             print(cnt, len(que))
         idx1, idx2, cost, direction, last_rotated = que.popleft()
         n_cost = cost + 1
-        for twist_idx, twist in enumerate(candidate[1]):
+        for twist_idx, twist in sorted_candidate:
             if not can_rotate[direction][twist // 6]:
                 continue
             n_dirs = [direction]
