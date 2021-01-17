@@ -56,10 +56,10 @@ def search_idx(phase, idxes):
     else:
         return search(phase, idxes[3] + idxes[2] * 24 + idxes[0] * 24 * 24 + idxes[1] * 24 * 24 * 40320)
 
-def phase_search(phase, idxes, depth, dis):
+def phase_search(phase, idxes, depth, dis, pre_direction):
     global phase_solution #, cnt
     #cnt += 1
-    '''
+    
     if dis <= max_pre_ans[phase]:
         pre_idx = search_idx(phase, idxes)
         if pre_idx != -1:
@@ -69,21 +69,24 @@ def phase_search(phase, idxes, depth, dis):
             res_notation = [i for i in phase_solution_notation]
             res_notation.extend(pre_ans_not[phase][pre_idx])
             return [[res, res_notation]]
-        elif dis == depth:
+        elif depth <= max_pre_ans[phase]:
             return []
     '''
     if dis == 0:
         return [[[i for i in phase_solution], [i for i in phase_solution_notation]]]
     if depth == 0:
         return []
-    
+    '''
     #print(dis, depth, phase_solution_notation)
     res = []
     depth -= 1
     direction = idxes[3]
     last_rotated = phase_solution[-1] if phase_solution and phase_solution[-1] >= 12 else -10
+    l2_rotated = phase_solution[-2] if len(phase_solution) >= 2 and phase_solution[-2] >= 12 else -10
     l1_twist = phase_solution_notation[-1] if phase_solution_notation else -10
     l2_twist = phase_solution_notation[-2] if len(phase_solution_notation) >= 2 else -10
+    can_twist = can_twists[direction][pre_direction]
+    n_pre_direction = direction
     for twist_idx in range(14):
         if twist_idx <= 11:
             twist = actual_face[direction][twist_idx // 3] * 3 + twist_idx % 3
@@ -93,9 +96,13 @@ def phase_search(phase, idxes, depth, dis):
                 continue
             if not twist in candidate[phase]:
                 continue
+            if not actual_face[direction][twist_idx // 3] in can_twist:
+                continue
             n_idxes = trans(phase, idxes, twist2phase_idx[phase][twist])
         else:
-            if last_rotated != -10: # don't rotate whole cube over once
+            if last_rotated != -10: # don't rotate whole cube more than once
+                continue
+            if l2_rotated != -10: # don't rotate whole cube before twisting faces 2 or more times
                 continue
             n_idxes = [i for i in idxes]
             n_idxes[3] = move_dir(direction, twist_idx)
@@ -105,7 +112,7 @@ def phase_search(phase, idxes, depth, dis):
         phase_solution.append(twist_idx)
         if twist_idx <= 11:
             phase_solution_notation.append(twist)
-        sol = phase_search(phase, n_idxes, depth, n_dis)
+        sol = phase_search(phase, n_idxes, depth, n_dis, n_pre_direction)
         if sol: # only one solution needed
             return sol
         res.extend(sol)
@@ -146,7 +153,7 @@ def solver(stickers):
                 strt_depth = dis
                 for depth in range(strt_depth, l - len(last_solution)):
                     #print(depth)
-                    sol = phase_search(phase, idxes, depth, dis)
+                    sol = phase_search(phase, idxes, depth, dis, 24)
                     if sol:
                         for solution, solution_notation in sol:
                             n_cp = [i for i in cp]
@@ -225,7 +232,7 @@ for idx in range(3):
     with open('prun_phase1_ep_ep_' + str(idx) + '.csv', mode='r') as f:
         for line in map(str.strip, f):
             prun_phase1_ep_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
-'''
+
 pre_ans_idx = [[] for _ in range(2)]
 pre_ans_ans = [[] for _ in range(2)]
 pre_ans_not = [[] for _ in range(2)]
@@ -245,7 +252,16 @@ for phase in range(2):
                 pre_ans_not[phase].append([])
             else:
                 pre_ans_not[phase].append([int(i) for i in line.replace('\n', '').split(',')])
-'''
+
+
+can_twists = [[] for _ in range(25)]
+for direction in range(24):
+    now_face = set(actual_face[direction])
+    for pre_direction in range(24):
+        pre_face = set() if pre_direction == direction else set(actual_face[pre_direction])
+        can_twists[direction].append(now_face - pre_face)
+    can_twists[direction].append(now_face)
+
 print('solver initialized')
 
 ''' TEST '''
@@ -253,8 +269,11 @@ p1 = 2.0
 p2 = 0.2
 from time import time
 w, g, r, b, o, y = range(6)
-#arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
-arr = [b, g, r, y, w, w, g, b, b, o, w, o, r, g, o, r, y, b, w, g, w, w, r, w, o, y, y, g, y, w, r, b, b, o, b, y, r, b, w, r, o, g, r, o, g, y, r, y, g, y, o, b, o, g] # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2
+arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
+#arr = [b, g, r, y, w, w, g, b, b, o, w, o, r, g, o, r, y, b, w, g, w, w, r, w, o, y, y, g, y, w, r, b, b, o, b, y, r, b, w, r, o, g, r, o, g, y, r, y, g, y, o, b, o, g] # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2
+#arr = [w, b, w, o, w, r, w, g, w, g, w, g, o, g, r, g, y, g, r, w, r, g, r, b, r, y, r, b, w, b, r, b, o, b, y, b, o, w, o, b, o, g, o, y, o, y, g, y, o, y, r, y, b, y] # super flip U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2
+#arr = [w, w, w, w, w, w, o, o, y, g, g, r, g, g, r, y, y, r, g, b, b, g, r, r, g, r, r, o, o, o, w, b, b, w, b, b, g, g, y, o, o, y, o, o, b, r, r, w, y, y, b, y, y, b] # R U F
+#arr = [o, w, w, o, w, w, o, g, g, w, r, r, g, g, g, y, y, y, w, b, b, w, r, r, g, r, r, o, o, y, w, b, b, w, b, b, g, g, g, o, o, y, o, o, b, r, r, r, y, y, b, y, y, b] # R F U
 #arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R
 #arr = [w, w, o, w, w, g, w, w, g, g, g, y, g, g, w, g, g, g, r, r, w, b, r, r, w, r, r, b, r, r, b, b, b, b, b, b, b, o, o, o, o, o, o, o, o, y, y, r, y, y, y, y, y, y]  # R U R' U'
 #arr = [w, w, w, w, w, w, o, o, b, g, g, w, r, g, g, w, g, g, r, g, g, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, o, o, y, o, o, w, o, o, o, g, y, y, y, y, y, y, y, y] # F U F' U'
@@ -267,6 +286,7 @@ print(len(tmp), tmp)
 print('time:', time() - strt)
 exit()
 
+'''
 # find the most efficient parameter
 p1 = 1.0
 p2 = 0.01
@@ -325,3 +345,4 @@ while p1 < p1_ans + 0.2:
     p1 += 0.03
 
 print(min_p1 / num, min_p2 / num, min_cnt)
+'''
