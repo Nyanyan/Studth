@@ -50,7 +50,7 @@ def table_phase0():
                 continue
             idxes.add(idx)
             n_ans = [i for i in ans]
-            n_ans.append(actual_face[n_direction].index(rev_twist // 3) * 3 + rev_twist % 3)
+            n_ans.append(actual_face[n_direction].index(twist // 3) * 3 + twist % 3)
             n_notation = [i for i in notation]
             n_notation.append(twist)
             table.append([idx, n_ans, n_notation])
@@ -134,7 +134,7 @@ def table_phase1():
                 continue
             idxes.add(idx)
             n_ans = [i for i in ans]
-            n_ans.append(actual_face[n_direction].index(rev_twist // 3) * 3 + rev_twist % 3)
+            n_ans.append(actual_face[n_direction].index(twist // 3) * 3 + twist % 3)
             n_notation = [i for i in notation]
             n_notation.append(twist)
             table.append([idx, n_ans, n_notation])
@@ -171,5 +171,5 @@ def table_phase1():
         for arr in all_arr:
             writer.writerow(arr)
 
-#table_phase0()
+table_phase0()
 table_phase1()
