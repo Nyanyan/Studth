@@ -52,31 +52,32 @@ def search(phase, num):
 
 def search_idx(phase, idxes):
     if phase == 0:
-        return search(phase, idxes[3] + idxes[2] * 24 + idxes[0] * 24 * 495 + idxes[1] * 24 * 495 * 2187)
+        idx = idxes[3] + idxes[2] * 24 + idxes[0] * 24 * 495 + idxes[1] * 24 * 495 * 2187
     else:
-        return search(phase, idxes[3] + idxes[2] * 24 + idxes[0] * 24 * 24 + idxes[1] * 24 * 24 * 40320)
+        idx = idxes[3] + idxes[2] * 24 + idxes[0] * 24 * 24 + idxes[1] * 24 * 24 * 40320
+    return search(phase, idx)
 
 def phase_search(phase, idxes, depth, dis, pre_direction):
-    global phase_solution #, cnt
-    #cnt += 1
-    
-    if dis <= max_pre_ans[phase]:
+    global phase_solution, cnt
+    cnt += 1
+    '''
+    if dis <= max_pre_ans[phase] <= depth:
         pre_idx = search_idx(phase, idxes)
         if pre_idx != -1:
-            print(depth, len(phase_solution), pre_idx)
+            #print(depth, len(phase_solution), pre_idx)
             res = [i for i in phase_solution]
             res.extend(pre_ans_ans[phase][pre_idx])
             res_notation = [i for i in phase_solution_notation]
             res_notation.extend(pre_ans_not[phase][pre_idx])
             return [[res, res_notation]]
-        elif depth <= max_pre_ans[phase]:
-            return []
+    if depth <= max_pre_ans[phase]:
+        return []
     '''
     if dis == 0:
         return [[[i for i in phase_solution], [i for i in phase_solution_notation]]]
     if depth == 0:
         return []
-    '''
+    
     #print(dis, depth, phase_solution_notation)
     res = []
     depth -= 1
@@ -179,6 +180,7 @@ def solver(stickers):
             search_lst = [[i for i in j] for j in n_search_lst]
             n_search_lst = []
             print('max len', l, 'phase', phase, 'depth', depth, 'found solutions', len(search_lst))
+            print(cnt)
         if search_lst:
             res = [i for i in search_lst[-1][5]]
         #else:
@@ -232,7 +234,7 @@ for idx in range(3):
     with open('prun_phase1_ep_ep_' + str(idx) + '.csv', mode='r') as f:
         for line in map(str.strip, f):
             prun_phase1_ep_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
-
+'''
 pre_ans_idx = [[] for _ in range(2)]
 pre_ans_ans = [[] for _ in range(2)]
 pre_ans_not = [[] for _ in range(2)]
@@ -252,7 +254,7 @@ for phase in range(2):
                 pre_ans_not[phase].append([])
             else:
                 pre_ans_not[phase].append([int(i) for i in line.replace('\n', '').split(',')])
-
+'''
 
 can_twists = [[] for _ in range(25)]
 for direction in range(24):
@@ -266,12 +268,12 @@ print('solver initialized')
 
 ''' TEST '''
 p1 = 2.0
-p2 = 0.2
+p2 = 0.05
 from time import time
 w, g, r, b, o, y = range(6)
-arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
+#arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
 #arr = [b, g, r, y, w, w, g, b, b, o, w, o, r, g, o, r, y, b, w, g, w, w, r, w, o, y, y, g, y, w, r, b, b, o, b, y, r, b, w, r, o, g, r, o, g, y, r, y, g, y, o, b, o, g] # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2
-#arr = [w, b, w, o, w, r, w, g, w, g, w, g, o, g, r, g, y, g, r, w, r, g, r, b, r, y, r, b, w, b, r, b, o, b, y, b, o, w, o, b, o, g, o, y, o, y, g, y, o, y, r, y, b, y] # super flip U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2
+arr = [w, b, w, o, w, r, w, g, w, g, w, g, o, g, r, g, y, g, r, w, r, g, r, b, r, y, r, b, w, b, r, b, o, b, y, b, o, w, o, b, o, g, o, y, o, y, g, y, o, y, r, y, b, y] # super flip U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2
 #arr = [w, w, w, w, w, w, o, o, y, g, g, r, g, g, r, y, y, r, g, b, b, g, r, r, g, r, r, o, o, o, w, b, b, w, b, b, g, g, y, o, o, y, o, o, b, r, r, w, y, y, b, y, y, b] # R U F
 #arr = [o, w, w, o, w, w, o, g, g, w, r, r, g, g, g, y, y, y, w, b, b, w, r, r, g, r, r, o, o, y, w, b, b, w, b, b, g, g, g, o, o, y, o, o, b, r, r, r, y, y, b, y, y, b] # R F U
 #arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R

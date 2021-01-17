@@ -22,11 +22,11 @@ def table_phase0():
     co_idx = co2idx([0 for _ in range(8)])
     eo_idx = eo2idx([0 for _ in range(12)])
     que = deque([[i, ep_idx, co_idx, eo_idx, [], []] for i in range(24)])
-    #idxes = set()
+    idxes = set()
     for direction, ep_idx, co_idx, eo_idx, _, _ in que:
         idx = direction + ep_idx * 24 + co_idx * 24 * 495 + eo_idx * 24 * 495 * 2187
         table.append([idx, [], []])
-        #idxes.add(idx)
+        idxes.add(idx)
     sorted_candidate = sorted(list(candidate[0]))
     cnt = 0
     while que:
@@ -50,6 +50,9 @@ def table_phase0():
             n_co_idx = trans_co[co_idx][twist_idx]
             n_eo_idx = trans_eo[eo_idx][twist_idx]
             idx = n_direction + n_ep_idx * 24 + n_co_idx * 24 * 495 + n_eo_idx * 24 * 495 * 2187
+            if idx in idxes:
+                continue
+            idxes.add(idx)
             n_ans = [i for i in ans]
             n_ans.append(actual_face[n_direction].index(twist // 3) * 3 + twist % 3)
             n_notation = [i for i in notation]
@@ -64,6 +67,9 @@ def table_phase0():
             n_eo_idx = eo_idx
             n_direction = rev_move_dir(direction, rotate)
             idx = n_direction + n_ep_idx * 24 + n_co_idx * 24 * 495 + n_eo_idx * 24 * 495 * 2187
+            if idx in idxes:
+                continue
+            idxes.add(idx)
             n_ans = [i for i in ans]
             n_ans.append(rotate)
             n_notation = [i for i in notation]
@@ -114,11 +120,11 @@ def table_phase1():
     cp_idx = cp2idx(list(range(8)))
     ep1_idx = ep2idx_phase1_1(list(range(12)))
     que = deque([[i, ep2_idx, cp_idx, ep1_idx, [], []] for i in range(24)])
-    #idxes = set()
+    idxes = set()
     for direction, ep2_idx, cp_idx, ep1_idx, _, _ in que:
         idx = direction + ep2_idx * 24 + cp_idx * 24 * 24 + ep1_idx * 24 * 24 * 40320
         table.append([idx, [], []])
-        #idxes.add(idx)
+        idxes.add(idx)
     sorted_candidate = sorted(list(candidate[1]))
     cnt = 0
     while que:
@@ -142,6 +148,9 @@ def table_phase1():
             n_cp_idx = trans_cp[cp_idx][twist_idx]
             n_ep1_idx = trans_ep_1[ep1_idx][twist_idx]
             idx = direction + n_ep2_idx * 24 + n_cp_idx * 24 * 24 + n_ep1_idx * 24 * 24 * 40320
+            if idx in idxes:
+                continue
+            idxes.add(idx)
             n_ans = [i for i in ans]
             n_ans.append(actual_face[n_direction].index(twist // 3) * 3 + twist % 3)
             n_notation = [i for i in notation]
@@ -156,6 +165,9 @@ def table_phase1():
             n_ep1_idx = ep1_idx
             n_direction = rev_move_dir(direction, rotate)
             idx = direction + n_ep2_idx * 24 + n_cp_idx * 24 * 24 + n_ep1_idx * 24 * 24 * 40320
+            if idx in idxes:
+                continue
+            idxes.add(idx)
             n_ans = [i for i in ans]
             n_ans.append(rotate)
             n_notation = [i for i in notation]
@@ -187,5 +199,5 @@ def table_phase1():
         for arr in all_arr:
             writer.writerow(arr)
 
-#table_phase0()
+table_phase0()
 table_phase1()
