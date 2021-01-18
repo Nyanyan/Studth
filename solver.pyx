@@ -1,4 +1,8 @@
+# distutils: language=c++
+# cython: language_level=3, boundscheck=False, wraparound=False, cdivision=True
+
 import cython
+from libcpp.vector cimport vector
 from basic_functions import *
 
 cdef idxes_init(int phase, cp, co, ep, eo, int direction):
@@ -62,9 +66,9 @@ def search_idx(phase, idxes):
 '''
 #cdef int last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
 cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
-    global phase_solution, n_idxes, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-    cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-    cnt += 1
+    global phase_solution, n_idxes #, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
+    cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis, sol_size, not_size
+    #cnt += 1
     '''
     if dis <= max_pre_ans[phase] <= depth:
         pre_idx = search_idx(phase, idxes)
@@ -78,18 +82,25 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
     if depth <= max_pre_ans[phase]:
         return []
     '''
+    cdef vector[int] res1, res2
     if dis == 0:
-        return [[[i for i in phase_solution], [i for i in phase_solution_notation]]]
+        for i in phase_solution:
+            res1.push_back(i)
+        for i in phase_solution_notation:
+            res2.push_back(i)
+        return [[res1, res2]]
     if depth == 0:
         return []
     
     #print(dis, depth, phase_solution_notation)
     res = []
     depth -= 1
-    last_rotated = phase_solution[-1] if phase_solution and phase_solution[-1] >= 12 else -10
-    l2_rotated = phase_solution[-2] if len(phase_solution) >= 2 and phase_solution[-2] >= 12 else -10
-    l1_twist = phase_solution_notation[-1] if phase_solution_notation else -10
-    l2_twist = phase_solution_notation[-2] if len(phase_solution_notation) >= 2 else -10
+    sol_size = phase_solution.size()
+    not_size = phase_solution_notation.size()
+    last_rotated = phase_solution[sol_size  - 1] if sol_size >= 1 and phase_solution[sol_size - 1] >= 12 else -10
+    l2_rotated = phase_solution[sol_size - 2] if sol_size >= 2 and phase_solution[sol_size - 2] >= 12 else -10
+    l1_twist = phase_solution_notation[not_size - 1] if not_size >= 1 else -10
+    l2_twist = phase_solution_notation[not_size - 2] if not_size >= 2 else -10
     can_twist = can_twists[direction][pre_direction]
     n_pre_direction = direction
     for twist_idx in range(14):
@@ -116,9 +127,9 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
         n_dis = distance(phase, n_idx1, n_idx2, n_idx3, n_direction)
         if n_dis > depth: # or (n_dis > dis + 1 and random() < 0.5):
             continue
-        phase_solution.append(twist_idx)
+        phase_solution.push_back(twist_idx)
         if twist_idx <= 11:
-            phase_solution_notation.append(twist)
+            phase_solution_notation.push_back(twist)
         sol = phase_search(phase, n_idx1, n_idx2, n_idx3, n_direction, depth, n_dis, n_pre_direction)
         if sol: # only one solution needed
             return sol
@@ -127,9 +138,9 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
         if len(res) > 50:
             return res
         '''
-        phase_solution.pop()
+        phase_solution.pop_back()
         if twist_idx <= 11:
-            phase_solution_notation.pop()
+            phase_solution_notation.pop_back()
     return res
 
 def solver(stickers):
@@ -164,7 +175,13 @@ def solver(stickers):
                     #print(depth)
                     sol = phase_search(phase, idx1, idx2, idx3, idx4, depth, dis, 24)
                     if sol:
-                        for solution, solution_notation in sol:
+                        for solution_v, solution_notation_v in sol:
+                            solution = []
+                            for i in solution_v:
+                                solution.append(i)
+                            solution_notation = []
+                            for i in solution_notation_v:
+                                solution_notation.append(i)
                             n_cp = [i for i in cp]
                             n_co = [i for i in co]
                             n_ep = [i for i in ep]
@@ -188,61 +205,72 @@ def solver(stickers):
             search_lst = [[i for i in j] for j in n_search_lst]
             n_search_lst = []
             print('max len', l, 'phase', phase, 'depth', depth, 'found solutions', len(search_lst))
-            print(cnt)
+            #print(cnt)
         if search_lst:
-            res = [i for i in search_lst[-1][5]]
+            res = [i for i in search_lst[0][5]]
         #else:
         break
     return res
 
-phase_solution = []
-phase_solution_notation = []
+
+cdef vector[int] phase_solution = []
+cdef vector[int] phase_solution_notation = []
 
 cdef int[2187][14] trans_co
 with open('trans_co.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_co[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_co[idx][idx2] = int(i)
 cdef int[40320][10] trans_cp
 with open('trans_cp.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_cp[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_cp[idx][idx2] = int(i)
 cdef int[2048][14] trans_eo
 with open('trans_eo.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_eo[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_eo[idx][idx2] = int(i)
 cdef int[495][14] trans_ep_phase0
 with open('trans_ep_phase0.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_ep_phase0[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_ep_phase0[idx][idx2] = int(i)
 cdef int[40320][10] trans_ep_phase1_1
 with open('trans_ep_phase1_1.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_ep_phase1_1[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_ep_phase1_1[idx][idx2] = int(i)
 cdef int[24][10] trans_ep_phase1_2
 with open('trans_ep_phase1_2.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
-        trans_ep_phase1_2[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+        for idx2, i in enumerate(line.replace('\n', '').split(',')):
+            trans_ep_phase1_2[idx][idx2] = int(i)
 
 cdef int[3][495][2187] prun_phase0_co_ep
 for idx in range(3):
     with open('prun_phase0_co_ep_' + str(idx) + '.csv', mode='r') as f:
         for idx2, line in enumerate(map(str.strip, f)):
-            prun_phase0_co_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+            for idx3, i in enumerate(line.replace('\n', '').split(',')):
+                prun_phase0_co_ep[idx][idx2][idx3] = int(i)
 cdef int[3][495][2048] prun_phase0_eo_ep
 for idx in range(3):
     with open('prun_phase0_eo_ep_' + str(idx) + '.csv', mode='r') as f:
         for idx2, line in enumerate(map(str.strip, f)):
-            prun_phase0_eo_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+            for idx3, i in enumerate(line.replace('\n', '').split(',')):
+                prun_phase0_eo_ep[idx][idx2][idx3] = int(i)
 cdef int[3][24][40320] prun_phase1_cp_ep
 for idx in range(3):
     with open('prun_phase1_cp_ep_' + str(idx) + '.csv', mode='r') as f:
         for idx2, line in enumerate(map(str.strip, f)):
-            prun_phase1_cp_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+            for idx3, i in enumerate(line.replace('\n', '').split(',')):
+                prun_phase1_cp_ep[idx][idx2][idx3] = int(i)
 cdef int[3][24][40320] prun_phase1_ep_ep
 for idx in range(3):
     with open('prun_phase1_ep_ep_' + str(idx) + '.csv', mode='r') as f:
         for idx2, line in enumerate(map(str.strip, f)):
-            prun_phase1_ep_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+            for idx3, i in enumerate(line.replace('\n', '').split(',')):
+                prun_phase1_ep_ep[idx][idx2][idx3] = int(i)
 '''
 pre_ans_idx = [[] for _ in range(2)]
 pre_ans_ans = [[] for _ in range(2)]
@@ -279,26 +307,29 @@ print('solver initialized')
 
 
 ''' TEST '''
-p1 = 2.0
-p2 = 0.05
-from time import time
-w, g, r, b, o, y = range(6)
-#arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
-#arr = [b, g, r, y, w, w, g, b, b, o, w, o, r, g, o, r, y, b, w, g, w, w, r, w, o, y, y, g, y, w, r, b, b, o, b, y, r, b, w, r, o, g, r, o, g, y, r, y, g, y, o, b, o, g] # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2
-arr = [w, b, w, o, w, r, w, g, w, g, w, g, o, g, r, g, y, g, r, w, r, g, r, b, r, y, r, b, w, b, r, b, o, b, y, b, o, w, o, b, o, g, o, y, o, y, g, y, o, y, r, y, b, y] # super flip U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2
-#arr = [w, w, w, w, w, w, o, o, y, g, g, r, g, g, r, y, y, r, g, b, b, g, r, r, g, r, r, o, o, o, w, b, b, w, b, b, g, g, y, o, o, y, o, o, b, r, r, w, y, y, b, y, y, b] # R U F
-#arr = [o, w, w, o, w, w, o, g, g, w, r, r, g, g, g, y, y, y, w, b, b, w, r, r, g, r, r, o, o, y, w, b, b, w, b, b, g, g, g, o, o, y, o, o, b, r, r, r, y, y, b, y, y, b] # R F U
-#arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R
-#arr = [w, w, o, w, w, g, w, w, g, g, g, y, g, g, w, g, g, g, r, r, w, b, r, r, w, r, r, b, r, r, b, b, b, b, b, b, b, o, o, o, o, o, o, o, o, y, y, r, y, y, y, y, y, y]  # R U R' U'
-#arr = [w, w, w, w, w, w, o, o, b, g, g, w, r, g, g, w, g, g, r, g, g, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, o, o, y, o, o, w, o, o, o, g, y, y, y, y, y, y, y, y] # F U F' U'
-#arr = [y, y, w, w, w, y, w, y, w, o, o, g, g, g, b, r, r, b, r, b, r, o, r, r, o, g, g, b, r, b, g, b, b, o, g, o, r, b, b, r, o, o, g, o, g, y, w, y, w, y, w, y, y, w] # U R2 L2 D2 F2 U' L2
-#arr = [y, y, g, w, w, b, w, y, b, o, o, y, g, g, w, r, r, w, o, o, r, g, r, b, g, r, r, w, r, b, y, b, b, w, g, o, r, b, b, r, o, o, g, o, g, y, w, o, w, y, g, y, y, b] # U R2 L2 D2 F2 U' L2 R
-strt = time()
-cnt = 0
-tmp = solver(arr)
-print(len(tmp), tmp)
-print('time:', time() - strt)
-exit()
+#cnt = 0
+def main():
+    p1 = 2.0
+    p2 = 0.05
+    from time import time
+    w, g, r, b, o, y = range(6)
+    #arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
+    #arr = [b, g, r, y, w, w, g, b, b, o, w, o, r, g, o, r, y, b, w, g, w, w, r, w, o, y, y, g, y, w, r, b, b, o, b, y, r, b, w, r, o, g, r, o, g, y, r, y, g, y, o, b, o, g] # U B2 L2 U F2 R2 U R2 B2 D' F2 D2 R' D' U2 B' R B2 L2 F U2
+    arr = [w, b, w, o, w, r, w, g, w, g, w, g, o, g, r, g, y, g, r, w, r, g, r, b, r, y, r, b, w, b, r, b, o, b, y, b, o, w, o, b, o, g, o, y, o, y, g, y, o, y, r, y, b, y] # super flip U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2
+    #arr = [w, w, w, w, w, w, o, o, y, g, g, r, g, g, r, y, y, r, g, b, b, g, r, r, g, r, r, o, o, o, w, b, b, w, b, b, g, g, y, o, o, y, o, o, b, r, r, w, y, y, b, y, y, b] # R U F
+    #arr = [o, w, w, o, w, w, o, g, g, w, r, r, g, g, g, y, y, y, w, b, b, w, r, r, g, r, r, o, o, y, w, b, b, w, b, b, g, g, g, o, o, y, o, o, b, r, r, r, y, y, b, y, y, b] # R F U
+    #arr = [w, w, g, w, w, g, w, w, g, g, g, y, g, g, y, g, g, y, r, r, r, r, r, r, r, r, r, w, b, b, w, b, b, w, b, b, o, o, o, o, o, o, o, o, o, y, y, b, y, y, b, y, y, b] # R
+    #arr = [w, w, o, w, w, g, w, w, g, g, g, y, g, g, w, g, g, g, r, r, w, b, r, r, w, r, r, b, r, r, b, b, b, b, b, b, b, o, o, o, o, o, o, o, o, y, y, r, y, y, y, y, y, y]  # R U R' U'
+    #arr = [w, w, w, w, w, w, o, o, b, g, g, w, r, g, g, w, g, g, r, g, g, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, o, o, y, o, o, w, o, o, o, g, y, y, y, y, y, y, y, y] # F U F' U'
+    #arr = [y, y, w, w, w, y, w, y, w, o, o, g, g, g, b, r, r, b, r, b, r, o, r, r, o, g, g, b, r, b, g, b, b, o, g, o, r, b, b, r, o, o, g, o, g, y, w, y, w, y, w, y, y, w] # U R2 L2 D2 F2 U' L2
+    #arr = [y, y, g, w, w, b, w, y, b, o, o, y, g, g, w, r, r, w, o, o, r, g, r, b, g, r, r, w, r, b, y, b, b, w, g, o, r, b, b, r, o, o, g, o, g, y, w, o, w, y, g, y, y, b] # U R2 L2 D2 F2 U' L2 R
+    strt = time()
+    tmp = solver(arr)
+    print(len(tmp), tmp)
+    print('time:', time() - strt)
+
+if __name__ == '__main__':
+    main()
 
 '''
 # find the most efficient parameter
