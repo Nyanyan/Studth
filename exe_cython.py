@@ -1,3 +1,4 @@
+# coding:utf-8
 import sys
 import subprocess
 import os
@@ -18,7 +19,7 @@ except subprocess.CalledProcessError as e:
 
 print('------------------compile done 2------------------')
 
-from exe_cython_c import main
+from solver_c import main
 main()
 
 #os.remove('exe_cython_cmp.cp38-win_amd64.pyd')

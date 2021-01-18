@@ -1,3 +1,4 @@
+import cython
 from basic_functions import *
 
 cdef idxes_init(int phase, cp, co, ep, eo, int direction):
@@ -100,9 +101,9 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
                 continue
             if twist // 6 == l1_twist // 6 and twist > l1_twist: # for example, permit R L but not L R
                 continue
-            if not twist in candidate[phase]:
+            if twist2phase_idx[phase][twist] == -1:
                 continue
-            if not actual_face[direction][twist_idx // 3] in can_twist:
+            if not can_twists[direction][pre_direction][actual_face[direction][twist_idx // 3]]:
                 continue
             n_idx1, n_idx2, n_idx3, n_direction = trans(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
         else:
@@ -264,15 +265,18 @@ for phase in range(2):
                 pre_ans_not[phase].append([int(i) for i in line.replace('\n', '').split(',')])
 '''
 
-can_twists = [[] for _ in range(25)]
+cdef int[24][25][6] can_twists
 for direction in range(24):
     now_face = set(actual_face[direction])
     for pre_direction in range(24):
         pre_face = set() if pre_direction == direction else set(actual_face[pre_direction])
-        can_twists[direction].append(now_face - pre_face)
-    can_twists[direction].append(now_face)
+        for face in range(6):
+            can_twists[direction][pre_direction][face] = int(face in (now_face - pre_face))
+    for face in range(6):
+        can_twists[direction][24][face] = int(face in now_face)
 
 print('solver initialized')
+
 
 ''' TEST '''
 p1 = 2.0

@@ -1,6 +1,6 @@
 # coding:utf-8
 from basic_functions import *
-from solver import solver
+from solver_c import solver
 from controller import controller
 from detector import detector
 from time import sleep, time
