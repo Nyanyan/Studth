@@ -1,38 +1,37 @@
 from basic_functions import *
 
 cdef idxes_init(int phase, cp, co, ep, eo, int direction):
-    if phase == 0:
-        res1 = co2idx(co)
-        res2 = eo2idx(eo)
-        res3 = ep2idx_phase0(ep)
-        return (res1, res2, res3, direction)
-    else:
-        res1 = cp2idx(cp)
-        res2 = ep2idx_phase1_1(ep)
-        res3 = ep2idx_phase1_2(ep)
-        return (res1, res2, res3, direction)
-
-cdef trans(int phase, idxes, int twist):
     cdef int[4] res
     if phase == 0:
-        res[0] = trans_co[idxes[0]][twist]
-        res[1] = trans_eo[idxes[1]][twist]
-        res[2] = trans_ep_phase0[idxes[2]][twist]
-        res[3] = idxes[3]
-        return res
+        res[0] = co2idx(co)
+        res[1] = eo2idx(eo)
+        res[2] = ep2idx_phase0(ep)
     else:
-        res[0] = trans_cp[idxes[0]][twist]
-        res[1] = trans_ep_phase1_1[idxes[1]][twist]
-        res[2] = trans_ep_phase1_2[idxes[2]][twist]
-        res[3] = idxes[3]
-        return res
+        res[0] = cp2idx(cp)
+        res[1] = ep2idx_phase1_1(ep)
+        res[2] = ep2idx_phase1_2(ep)
+    res[3] = direction
+    return res
 
-cdef int distance(int phase, idxes):
-    direction_type = dir_type[idxes[3]]
+cdef trans(int phase, int idx1, int idx2, int idx3, int idx4, int twist):
+    cdef int[4] res
     if phase == 0:
-        return max(prun_phase0_co_ep[direction_type][idxes[2]][idxes[0]], prun_phase0_eo_ep[direction_type][idxes[2]][idxes[1]]) # + int(p2 * abs(prun_phase0_co_ep[direction_type][idxes[2]][idxes[0]] - prun_phase0_eo_ep[direction_type][idxes[2]][idxes[1]]) ** p1)
+        res[0] = trans_co[idx1][twist]
+        res[1] = trans_eo[idx2][twist]
+        res[2] = trans_ep_phase0[idx3][twist]
     else:
-        return max(prun_phase1_cp_ep[direction_type][idxes[2]][idxes[0]], prun_phase1_ep_ep[direction_type][idxes[2]][idxes[1]]) # + int(p2 * abs(prun_phase1_cp_ep[direction_type][idxes[2]][idxes[0]] - prun_phase1_ep_ep[direction_type][idxes[2]][idxes[1]]) ** p1)
+        res[0] = trans_cp[idx1][twist]
+        res[1] = trans_ep_phase1_1[idx2][twist]
+        res[2] = trans_ep_phase1_2[idx3][twist]
+    res[3] = idx4
+    return res
+
+cdef int distance(int phase, int idx1, int idx2, int idx3, int idx4):
+    direction_type = dir_type[idx4]
+    if phase == 0:
+        return max(prun_phase0_co_ep[direction_type][idx3][idx1], prun_phase0_eo_ep[direction_type][idx3][idx2]) # + int(p2 * abs(prun_phase0_co_ep[direction_type][idxes[2]][idxes[0]] - prun_phase0_eo_ep[direction_type][idxes[2]][idxes[1]]) ** p1)
+    else:
+        return max(prun_phase1_cp_ep[direction_type][idx3][idx1], prun_phase1_ep_ep[direction_type][idx3][idx2]) # + int(p2 * abs(prun_phase1_cp_ep[direction_type][idxes[2]][idxes[0]] - prun_phase1_ep_ep[direction_type][idxes[2]][idxes[1]]) ** p1)
 '''
 def search(phase, num):
     l = 0
@@ -61,9 +60,9 @@ def search_idx(phase, idxes):
     return search(phase, idx)
 '''
 #cdef int last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-cdef phase_search(int phase, idxes, int depth, int dis, int pre_direction):
-    global phase_solution, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-    cdef int direction, twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
+cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
+    global phase_solution, n_idxes, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
+    cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
     cnt += 1
     '''
     if dis <= max_pre_ans[phase] <= depth:
@@ -86,7 +85,6 @@ cdef phase_search(int phase, idxes, int depth, int dis, int pre_direction):
     #print(dis, depth, phase_solution_notation)
     res = []
     depth -= 1
-    direction = idxes[3]
     last_rotated = phase_solution[-1] if phase_solution and phase_solution[-1] >= 12 else -10
     l2_rotated = phase_solution[-2] if len(phase_solution) >= 2 and phase_solution[-2] >= 12 else -10
     l1_twist = phase_solution_notation[-1] if phase_solution_notation else -10
@@ -106,21 +104,21 @@ cdef phase_search(int phase, idxes, int depth, int dis, int pre_direction):
                 continue
             if not actual_face[direction][twist_idx // 3] in can_twist:
                 continue
-            n_idxes = trans(phase, idxes, twist2phase_idx[phase][twist])
+            n_idx1, n_idx2, n_idx3, n_direction = trans(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
         else:
             if last_rotated != -10: # don't rotate whole cube more than once
                 continue
             if l2_rotated != -10: # don't rotate whole cube before twisting faces 2 or more times
                 continue
-            n_idxes = [i for i in idxes]
-            n_idxes[3] = move_dir(direction, twist_idx)
-        n_dis = distance(phase, n_idxes)
+            n_idx1, n_idx2, n_idx3 = idx1, idx2, idx3
+            n_direction = move_dir(direction, twist_idx)
+        n_dis = distance(phase, n_idx1, n_idx2, n_idx3, n_direction)
         if n_dis > depth: # or (n_dis > dis + 1 and random() < 0.5):
             continue
         phase_solution.append(twist_idx)
         if twist_idx <= 11:
             phase_solution_notation.append(twist)
-        sol = phase_search(phase, n_idxes, depth, n_dis, n_pre_direction)
+        sol = phase_search(phase, n_idx1, n_idx2, n_idx3, n_direction, depth, n_dis, n_pre_direction)
         if sol: # only one solution needed
             return sol
         '''
@@ -156,14 +154,14 @@ def solver(stickers):
         n_search_lst = []
         for phase in range(2):
             for cp, co, ep, eo, direction, last_solution in search_lst:
-                idxes = idxes_init(phase, cp, co, ep, eo, direction)
-                dis = distance(phase, idxes)
+                idx1, idx2, idx3, idx4 = idxes_init(phase, cp, co, ep, eo, direction)
+                dis = distance(phase, idx1, idx2, idx3, idx4)
                 phase_solution = []
                 phase_solution_notation = []
                 strt_depth = dis
                 for depth in range(strt_depth, l - len(last_solution)):
                     #print(depth)
-                    sol = phase_search(phase, idxes, depth, dis, 24)
+                    sol = phase_search(phase, idx1, idx2, idx3, idx4, depth, dis, 24)
                     if sol:
                         for solution, solution_notation in sol:
                             n_cp = [i for i in cp]
@@ -198,51 +196,52 @@ def solver(stickers):
 
 phase_solution = []
 phase_solution_notation = []
-trans_co = []
-with open('trans_co.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_co.append([int(i) for i in line.replace('\n', '').split(',')])
-trans_cp = []
-with open('trans_cp.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_cp.append([int(i) for i in line.replace('\n', '').split(',')])
-trans_eo = []
-with open('trans_eo.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_eo.append([int(i) for i in line.replace('\n', '').split(',')])
-trans_ep_phase0 = []
-with open('trans_ep_phase0.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_ep_phase0.append([int(i) for i in line.replace('\n', '').split(',')])
-trans_ep_phase1_1 = []
-with open('trans_ep_phase1_1.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_ep_phase1_1.append([int(i) for i in line.replace('\n', '').split(',')])
-trans_ep_phase1_2 = []
-with open('trans_ep_phase1_2.csv', mode='r') as f:
-    for line in map(str.strip, f):
-        trans_ep_phase1_2.append([int(i) for i in line.replace('\n', '').split(',')])
 
-prun_phase0_co_ep = [[] for _ in range(3)]
+cdef int[2187][14] trans_co
+with open('trans_co.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_co[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[40320][10] trans_cp
+with open('trans_cp.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_cp[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[2048][14] trans_eo
+with open('trans_eo.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_eo[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[495][14] trans_ep_phase0
+with open('trans_ep_phase0.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_ep_phase0[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[40320][10] trans_ep_phase1_1
+with open('trans_ep_phase1_1.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_ep_phase1_1[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[24][10] trans_ep_phase1_2
+with open('trans_ep_phase1_2.csv', mode='r') as f:
+    for idx, line in enumerate(map(str.strip, f)):
+        trans_ep_phase1_2[idx] = [int(i) for i in line.replace('\n', '').split(',')]
+
+cdef int[3][495][2187] prun_phase0_co_ep
 for idx in range(3):
     with open('prun_phase0_co_ep_' + str(idx) + '.csv', mode='r') as f:
-        for line in map(str.strip, f):
-            prun_phase0_co_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
-prun_phase0_eo_ep = [[] for _ in range(3)]
+        for idx2, line in enumerate(map(str.strip, f)):
+            prun_phase0_co_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[3][495][2048] prun_phase0_eo_ep
 for idx in range(3):
     with open('prun_phase0_eo_ep_' + str(idx) + '.csv', mode='r') as f:
-        for line in map(str.strip, f):
-            prun_phase0_eo_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
-prun_phase1_cp_ep = [[] for _ in range(3)]
+        for idx2, line in enumerate(map(str.strip, f)):
+            prun_phase0_eo_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[3][24][40320] prun_phase1_cp_ep
 for idx in range(3):
     with open('prun_phase1_cp_ep_' + str(idx) + '.csv', mode='r') as f:
-        for line in map(str.strip, f):
-            prun_phase1_cp_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
-prun_phase1_ep_ep = [[] for _ in range(3)]
+        for idx2, line in enumerate(map(str.strip, f)):
+            prun_phase1_cp_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
+cdef int[3][24][40320] prun_phase1_ep_ep
 for idx in range(3):
     with open('prun_phase1_ep_ep_' + str(idx) + '.csv', mode='r') as f:
-        for line in map(str.strip, f):
-            prun_phase1_ep_ep[idx].append([int(i) for i in line.replace('\n', '').split(',')])
+        for idx2, line in enumerate(map(str.strip, f)):
+            prun_phase1_ep_ep[idx][idx2] = [int(i) for i in line.replace('\n', '').split(',')]
 '''
 pre_ans_idx = [[] for _ in range(2)]
 pre_ans_ans = [[] for _ in range(2)]
