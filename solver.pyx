@@ -3,6 +3,8 @@
 
 import cython
 from libcpp.vector cimport vector
+from libcpp cimport bool
+
 from basic_functions import *
 
 cdef idxes_init(int phase, cp, co, ep, eo, int direction):
@@ -70,7 +72,7 @@ def search_idx(phase, idxes):
     return search(phase, idx)
 '''
 #cdef int last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-cdef int phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
+cdef bool phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
     global phase_solution, n_idxes #, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
     cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_dis, sol_size, not_size
     #cnt += 1
@@ -89,9 +91,9 @@ cdef int phase_search(int phase, int idx1, int idx2, int idx3, int direction, in
     '''
     #cdef vector[vector[int]] res
     if dis == 0:
-        return 1
+        return True
     if depth == 0:
-        return 0
+        return False
     
     #print(dis, depth, phase_solution_notation)
     depth -= 1
@@ -142,7 +144,7 @@ cdef int phase_search(int phase, int idx1, int idx2, int idx3, int direction, in
         phase_solution.pop_back()
         if twist_idx <= 11:
             phase_solution_notation.pop_back()
-    return 0
+    return False
 
 def solver(stickers):
     global phase_solution, phase_solution_notation
