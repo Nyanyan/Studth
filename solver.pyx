@@ -18,21 +18,26 @@ cdef idxes_init(int phase, cp, co, ep, eo, int direction):
     res[3] = direction
     return res
 
-cdef trans(int phase, int idx1, int idx2, int idx3, int idx4, int twist):
-    cdef int[4] res
+cdef int trans1(int phase, int idx1, int idx2, int idx3, int idx4, int twist):
     if phase == 0:
-        res[0] = trans_co[idx1][twist]
-        res[1] = trans_eo[idx2][twist]
-        res[2] = trans_ep_phase0[idx3][twist]
+        return trans_co[idx1][twist]
     else:
-        res[0] = trans_cp[idx1][twist]
-        res[1] = trans_ep_phase1_1[idx2][twist]
-        res[2] = trans_ep_phase1_2[idx3][twist]
-    res[3] = idx4
-    return res
+        return trans_cp[idx1][twist]
+
+cdef int trans2(int phase, int idx1, int idx2, int idx3, int idx4, int twist):
+    if phase == 0:
+        return trans_eo[idx2][twist]
+    else:
+        return trans_ep_phase1_1[idx2][twist]
+
+cdef int trans3(int phase, int idx1, int idx2, int idx3, int idx4, int twist):
+    if phase == 0:
+        return trans_ep_phase0[idx3][twist]
+    else:
+        return trans_ep_phase1_2[idx3][twist]
 
 cdef int distance(int phase, int idx1, int idx2, int idx3, int idx4):
-    direction_type = dir_type[idx4]
+    cdef int direction_type = dir_type[idx4]
     if phase == 0:
         return max(prun_phase0_co_ep[direction_type][idx3][idx1], prun_phase0_eo_ep[direction_type][idx3][idx2]) # + int(p2 * abs(prun_phase0_co_ep[direction_type][idxes[2]][idxes[0]] - prun_phase0_eo_ep[direction_type][idxes[2]][idxes[1]]) ** p1)
     else:
@@ -65,9 +70,9 @@ def search_idx(phase, idxes):
     return search(phase, idx)
 '''
 #cdef int last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
+cdef int phase_search(int phase, int idx1, int idx2, int idx3, int direction, int depth, int dis, int pre_direction):
     global phase_solution, n_idxes #, cnt #, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis
-    cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_pre_direction, n_dis, sol_size, not_size
+    cdef int twist_idx, twist, last_rotated, l2_rotated, l1_twist, l2_twist, n_dis, sol_size, not_size
     #cnt += 1
     '''
     if dis <= max_pre_ans[phase] <= depth:
@@ -82,18 +87,13 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
     if depth <= max_pre_ans[phase]:
         return []
     '''
-    cdef vector[int] res1, res2
+    #cdef vector[vector[int]] res
     if dis == 0:
-        for i in phase_solution:
-            res1.push_back(i)
-        for i in phase_solution_notation:
-            res2.push_back(i)
-        return [[res1, res2]]
+        return 1
     if depth == 0:
-        return []
+        return 0
     
     #print(dis, depth, phase_solution_notation)
-    res = []
     depth -= 1
     sol_size = phase_solution.size()
     not_size = phase_solution_notation.size()
@@ -101,8 +101,6 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
     l2_rotated = phase_solution[sol_size - 2] if sol_size >= 2 and phase_solution[sol_size - 2] >= 12 else -10
     l1_twist = phase_solution_notation[not_size - 1] if not_size >= 1 else -10
     l2_twist = phase_solution_notation[not_size - 2] if not_size >= 2 else -10
-    can_twist = can_twists[direction][pre_direction]
-    n_pre_direction = direction
     for twist_idx in range(14):
         if twist_idx <= 11:
             twist = actual_face[direction][twist_idx // 3] * 3 + twist_idx % 3
@@ -116,7 +114,10 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
                 continue
             if not can_twists[direction][pre_direction][actual_face[direction][twist_idx // 3]]:
                 continue
-            n_idx1, n_idx2, n_idx3, n_direction = trans(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
+            n_idx1 = trans1(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
+            n_idx2 = trans2(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
+            n_idx3 = trans3(phase, idx1, idx2, idx3, direction, twist2phase_idx[phase][twist])
+            n_direction = direction
         else:
             if last_rotated != -10: # don't rotate whole cube more than once
                 continue
@@ -125,12 +126,12 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
             n_idx1, n_idx2, n_idx3 = idx1, idx2, idx3
             n_direction = move_dir(direction, twist_idx)
         n_dis = distance(phase, n_idx1, n_idx2, n_idx3, n_direction)
-        if n_dis > depth: # or (n_dis > dis + 1 and random() < 0.5):
+        if n_dis > depth:
             continue
         phase_solution.push_back(twist_idx)
         if twist_idx <= 11:
             phase_solution_notation.push_back(twist)
-        sol = phase_search(phase, n_idx1, n_idx2, n_idx3, n_direction, depth, n_dis, n_pre_direction)
+        sol = phase_search(phase, n_idx1, n_idx2, n_idx3, n_direction, depth, n_dis, direction)
         if sol: # only one solution needed
             return sol
         '''
@@ -141,7 +142,7 @@ cdef phase_search(int phase, int idx1, int idx2, int idx3, int direction, int de
         phase_solution.pop_back()
         if twist_idx <= 11:
             phase_solution_notation.pop_back()
-    return res
+    return 0
 
 def solver(stickers):
     global phase_solution, phase_solution_notation
@@ -173,32 +174,30 @@ def solver(stickers):
                 strt_depth = dis
                 for depth in range(strt_depth, l - len(last_solution)):
                     #print(depth)
-                    sol = phase_search(phase, idx1, idx2, idx3, idx4, depth, dis, 24)
-                    if sol:
-                        for solution_v, solution_notation_v in sol:
-                            solution = []
-                            for i in solution_v:
-                                solution.append(i)
-                            solution_notation = []
-                            for i in solution_notation_v:
-                                solution_notation.append(i)
-                            n_cp = [i for i in cp]
-                            n_co = [i for i in co]
-                            n_ep = [i for i in ep]
-                            n_eo = [i for i in eo]
-                            n_dir = direction
-                            n_solution = [i for i in last_solution]
-                            for twist in solution_notation:
-                                n_cp = move_cp(n_cp, twist)
-                                n_co = move_co(n_co, twist)
-                                n_ep = move_ep(n_ep, twist)
-                                n_eo = move_eo(n_eo, twist)
-                            for twist_arm in solution:
-                                n_dir = move_dir(n_dir, twist_arm)
-                            n_solution.extend(solution)
-                            n_search_lst.append([n_cp, n_co, n_ep, n_eo, n_dir, n_solution])
-                            if phase == 1:
-                                l = min(l, len(n_solution))
+                    if phase_search(phase, idx1, idx2, idx3, idx4, depth, dis, 24):
+                        solution = []
+                        for i in phase_solution:
+                            solution.append(i)
+                        solution_notation = []
+                        for i in phase_solution_notation:
+                            solution_notation.append(i)
+                        n_cp = [i for i in cp]
+                        n_co = [i for i in co]
+                        n_ep = [i for i in ep]
+                        n_eo = [i for i in eo]
+                        n_dir = direction
+                        n_solution = [i for i in last_solution]
+                        for twist in solution_notation:
+                            n_cp = move_cp(n_cp, twist)
+                            n_co = move_co(n_co, twist)
+                            n_ep = move_ep(n_ep, twist)
+                            n_eo = move_eo(n_eo, twist)
+                        for twist_arm in solution:
+                            n_dir = move_dir(n_dir, twist_arm)
+                        n_solution.extend(solution)
+                        n_search_lst.append([n_cp, n_co, n_ep, n_eo, n_dir, n_solution])
+                        if phase == 1:
+                            l = min(l, len(n_solution))
                         if phase == 0:
                             min_phase0_depth = depth + 1
                         break
