@@ -82,25 +82,41 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         phase_solution.pop_back()
     return res
 
-cdef robotize(vector[int] arr, int idx, int direction):
-    cdef int twist_ax, twist_face, twist_direction
+cdef vector[int] robotize(vector[int] arr, int idx, int direction, bool rotated):
+    cdef int twist_ax, twist_face, twist_direction, twist_arm, i, sol_size, res_size
+    cdef vector[int] res
+    res_size = 1000
     if idx == len(arr):
-        return []
-    res = []
+        return res
     twist_ax = arr[idx] // 6
     twist_face = arr[idx] // 3
     twist_direction = arr[idx] % 3
     if can_rotate[direction][twist_ax]:
-        res.append(actual_face[direction].index(twist_face) * 3 + twist_direction)
-        res.extend(robotize(arr, idx + 1, direction))
+        sol = robotize(arr, idx + 1, direction, False)
+        sol_size = sol.size()
+        if sol_size and sol[0] == -1:
+            res.push_back(-1)
+            return res
+        res.push_back(actual_face[direction].index(twist_face) * 3 + twist_direction)
+        for i in range(sol_size):
+            res.push_back(sol[i])
     else:
+        if rotated:
+            res.push_back(-1)
+            return res
         for rotation in range(12, 14):
             n_direction = move_dir(direction, rotation)
             twist_arm = actual_face[n_direction].index(twist_face) * 3 + twist_direction
-            n_res = [rotation, twist_arm]
-            n_res.extend(robotize(arr, idx + 1, n_direction))
-            if len(res) == 0 or len(res) > len(n_res):
-                res = [i for i in n_res]
+            sol = robotize(arr, idx + 1, n_direction, True)
+            sol_size = sol.size()
+            if sol_size and sol[0] == -1:
+                continue
+            if res_size > sol_size + 2:
+                res = []
+                res.push_back(rotation)
+                res.push_back(twist_arm)
+                for i in range(sol_size):
+                    res.push_back(sol[i])
     return res
 
 
@@ -131,6 +147,7 @@ def solver():
         s_co = move_co(s_co, twist)
         s_ep = move_ep(s_ep, twist)
         s_eo = move_eo(s_eo, twist)
+    
     while True:
         search_lst = [[s_cp, s_co, s_ep, s_eo, []]]
         n_search_lst = []
@@ -168,9 +185,10 @@ def solver():
             len_res = 1000
             res = []
             for _, _, _, _, res_candidate in search_lst:
-                robotized_res_can = robotize(res_candidate, 0, 0)
-                if len(robotized_res_can) < len_res:
-                    res = [i for i in robotized_res_can]
+                robotized_res_can = robotize(res_candidate, 0, 0, False)
+                if robotized_res_can.size() < len_res:
+                    res = list(robotized_res_can)
+                    len_res = robotized_res_can.size()
         #else:
         break
     return res
@@ -233,16 +251,20 @@ print('initialize done')
 ''' TEST '''
 def main():
     from time import time
+    
     num = 100
     tim = []
     lns = []
     for i in range(num):
         strt = time()
-        ln = len(solver())
-        print(i)
+        #ln = len(solver())
+        tmp = solver()
+        ln = len(tmp)
         end = time()
         tim.append(end - strt)
         lns.append(ln)
+        print(tmp)
+        print(i)
     print('avg tim', sum(tim) / num)
     print('max tim', max(tim))
     print('min tim', min(tim))
