@@ -252,7 +252,7 @@ print('initialize done')
 def main():
     from time import time
     
-    num = 100
+    num = 10000
     tim = []
     lns = []
     for i in range(num):

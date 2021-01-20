@@ -1620,7 +1620,7 @@ static PyObject *__pyx_int_8;
 static PyObject *__pyx_int_12;
 static PyObject *__pyx_int_17;
 static PyObject *__pyx_int_27;
-static PyObject *__pyx_int_100;
+static PyObject *__pyx_int_10000;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
@@ -5457,7 +5457,7 @@ static PyObject *__pyx_pf_8solver_c_2main(CYTHON_UNUSED PyObject *__pyx_self) {
  * def main():
  *     from time import time             # <<<<<<<<<<<<<<
  * 
- *     num = 100
+ *     num = 10000
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -5477,16 +5477,16 @@ static PyObject *__pyx_pf_8solver_c_2main(CYTHON_UNUSED PyObject *__pyx_self) {
   /* "solver.pyx":255
  *     from time import time
  * 
- *     num = 100             # <<<<<<<<<<<<<<
+ *     num = 10000             # <<<<<<<<<<<<<<
  *     tim = []
  *     lns = []
  */
-  __Pyx_INCREF(__pyx_int_100);
-  __pyx_v_num = __pyx_int_100;
+  __Pyx_INCREF(__pyx_int_10000);
+  __pyx_v_num = __pyx_int_10000;
 
   /* "solver.pyx":256
  * 
- *     num = 100
+ *     num = 10000
  *     tim = []             # <<<<<<<<<<<<<<
  *     lns = []
  *     for i in range(num):
@@ -5497,7 +5497,7 @@ static PyObject *__pyx_pf_8solver_c_2main(CYTHON_UNUSED PyObject *__pyx_self) {
   __pyx_t_2 = 0;
 
   /* "solver.pyx":257
- *     num = 100
+ *     num = 10000
  *     tim = []
  *     lns = []             # <<<<<<<<<<<<<<
  *     for i in range(num):
@@ -8233,8 +8233,8 @@ static PyMethodDef __pyx_methods[] = {
 static int __pyx_import_star_set(PyObject *o, PyObject* py_name, char *name) {
   static const char* internal_type_names[] = {
     "X",
-    "__pyx_ctuple_a357__f65fa__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc",
-    "__pyx_ctuple_a357__f65fa__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc_struct",
+    "__pyx_ctuple_187f6__e831a__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc",
+    "__pyx_ctuple_187f6__e831a__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc_struct",
     "__pyx_ctuple_int",
     "__pyx_ctuple_int__and_long",
     "__pyx_ctuple_int__and_long_struct",
@@ -8806,7 +8806,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_12 = PyInt_FromLong(12); if (unlikely(!__pyx_int_12)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_17 = PyInt_FromLong(17); if (unlikely(!__pyx_int_17)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_27 = PyInt_FromLong(27); if (unlikely(!__pyx_int_27)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_100 = PyInt_FromLong(100); if (unlikely(!__pyx_int_100)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_10000 = PyInt_FromLong(10000L); if (unlikely(!__pyx_int_10000)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;

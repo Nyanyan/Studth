@@ -1,7 +1,7 @@
 # coding:utf-8
 from distutils.core import setup, Extension
 from Cython.Build import cythonize
-from numpy import get_include # cimport numpy を使うため
+from numpy import get_include
 
 filename = input()
 
