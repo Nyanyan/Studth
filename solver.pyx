@@ -82,7 +82,8 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         phase_solution.pop_back()
     return res
 
-def robotize(arr, idx, direction):
+cdef robotize(vector[int] arr, int idx, int direction):
+    cdef int twist_ax, twist_face, twist_direction
     if idx == len(arr):
         return []
     res = []
@@ -170,8 +171,8 @@ def solver():
                 robotized_res_can = robotize(res_candidate, 0, 0)
                 if len(robotized_res_can) < len_res:
                     res = [i for i in robotized_res_can]
-        else:
-            break
+        #else:
+        break
     return res
 
 cdef vector[int] phase_solution = []
