@@ -43,12 +43,12 @@ def phase_search(phase, idxes, depth, dis):
     depth -= 1
     l1_twist = phase_solution[-1] if phase_solution else -10
     l2_twist = phase_solution[-2] if len(phase_solution) >= 2 else -10
-    l1_twist_type = l1_twist // 3
-    l2_twist_type = l2_twist // 3
     for twist_idx, twist in enumerate(candidate[phase]):
-        if twist // 3 == l1_twist_type: # don't turn same face twice
+        if twist // 3 == l1_twist // 3: # don't turn same face twice
             continue
-        if twist // 3 == l2_twist_type and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
+        if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
+            continue
+        if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R
             continue
         n_idxes = trans(phase, idxes, twist_idx)
         n_dis = distance(phase, n_idxes)
@@ -64,12 +64,54 @@ def phase_search(phase, idxes, depth, dis):
         phase_solution.pop()
     return res
 
-def solver(stickers):
+def robotize(arr, idx, direction):
+    if idx == len(arr):
+        return []
+    res = []
+    twist_ax = arr[idx] // 6
+    twist_face = arr[idx] // 3
+    twist_direction = arr[idx] % 3
+    if can_rotate[direction][twist_ax]:
+        res.append(actual_face[direction].index(twist_face) * 3 + twist_direction)
+        res.extend(robotize(arr, idx + 1, direction))
+    else:
+        for rotation in range(12, 14):
+            n_direction = move_dir(direction, rotation)
+            twist_arm = actual_face[n_direction].index(twist_face) * 3 + twist_direction
+            n_res = [rotation, twist_arm]
+            n_res.extend(robotize(arr, idx + 1, n_direction))
+            if len(res) == 0 or len(res) > len(n_res):
+                res = [i for i in n_res]
+    return res
+
+
+def solver():
     global phase_solution
     min_phase0_depth = 0
     res = []
     l = 27
+    '''
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
+    if s_cp.count(-1) == 1 and len((set(range(8)) - set(s_cp))) == 1:
+        s_cp[s_cp.index(-1)] = list(set(range(8)) - set(s_cp))[0]
+    if s_ep.count(-1) == 1 and len((set(range(12)) - set(s_ep))) == 1:
+        s_ep[s_ep.index(-1)] = list(set(range(12)) - set(s_ep))[0]
+    if s_co.count(-1) == 1:
+        s_co[s_co.index(-1)] = (3 - (sum(s_co) + 1) % 3) % 3
+    if s_eo.count(-1) == 1:
+        s_eo[s_eo.index(-1)] = (2 - (sum(s_eo) + 1) % 2) % 2
+    '''
+    s_cp = list(range(8))
+    s_co = [0 for _ in range(8)]
+    s_ep = list(range(12))
+    s_eo = [0 for _ in range(12)]
+    from random import randint
+    for _ in range(40):
+        twist = randint(0, 17)
+        s_cp = move_cp(s_cp, twist)
+        s_co = move_co(s_co, twist)
+        s_ep = move_ep(s_ep, twist)
+        s_eo = move_eo(s_eo, twist)
     while True:
         search_lst = [[s_cp, s_co, s_ep, s_eo, []]]
         n_search_lst = []
@@ -104,7 +146,12 @@ def solver(stickers):
             n_search_lst = []
             print('max len', l, 'phase', phase, 'depth', depth, 'found solutions', len(search_lst))
         if search_lst:
-            res = [i for i in search_lst[-1][4]]
+            len_res = 1000
+            res = []
+            for _, _, _, _, res_candidate in search_lst:
+                robotized_res_can = robotize(res_candidate, 0, 0)
+                if len(robotized_res_can) < len_res:
+                    res = [i for i in robotized_res_can]
         else:
             break
     return res
@@ -152,6 +199,30 @@ with open('prun_phase1_ep_ep.csv', mode='r') as f:
         prun_phase1_ep_ep.append([int(i) for i in line.replace('\n', '').split(',')])
 print('initialize done')
 
+
+''' TEST '''
+from time import time
+num = 100
+tim = []
+lns = []
+for i in range(num):
+    strt = time()
+    ln = len(solver())
+    print(i)
+    end = time()
+    tim.append(end - strt)
+    lns.append(ln)
+print('avg tim', sum(tim) / num)
+print('max tim', max(tim))
+print('min tim', min(tim))
+print('avg len', sum(lns) / num)
+print('max len', max(lns))
+print('min len', min(lns))
+'''
 w, g, r, b, o, y = range(6)
 arr = arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
-print(solver(arr))
+strt = time()
+tmp = solver(arr)
+print(len(tmp), tmp)
+print(time() - strt)
+'''
