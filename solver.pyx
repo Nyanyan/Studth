@@ -120,12 +120,12 @@ cdef vector[int] robotize(vector[int] arr, int idx, int direction, bool rotated)
     return res
 
 
-def solver():
+def solver(stickers):
     global phase_solution
     min_phase0_depth = 0
     res = []
     l = 27
-    '''
+    
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
     if s_cp.count(-1) == 1 and len((set(range(8)) - set(s_cp))) == 1:
         s_cp[s_cp.index(-1)] = list(set(range(8)) - set(s_cp))[0]
@@ -147,7 +147,7 @@ def solver():
         s_co = move_co(s_co, twist)
         s_ep = move_ep(s_ep, twist)
         s_eo = move_eo(s_eo, twist)
-    
+    '''
     while True:
         search_lst = [[s_cp, s_co, s_ep, s_eo, []]]
         n_search_lst = []
@@ -251,7 +251,7 @@ print('initialize done')
 ''' TEST '''
 def main():
     from time import time
-    
+    '''
     num = 100
     tim = []
     lns = []
@@ -278,4 +278,4 @@ def main():
     tmp = solver(arr)
     print(len(tmp), tmp)
     print(time() - strt)
-    '''
+    
