@@ -30,9 +30,9 @@ def controller(solution):
             for each_action in action:
                 send_command(each_action)
             if action[0][2] >= 1000:
-                sleep(0.05)
+                sleep(0.08)
             else:
-                sleep(0.26)
+                sleep(0.28)
         #sleep(1)
 
 ser_motor = [None, None]

@@ -135,6 +135,9 @@ def solver(stickers):
         s_co[s_co.index(-1)] = (3 - (sum(s_co) + 1) % 3) % 3
     if s_eo.count(-1) == 1:
         s_eo[s_eo.index(-1)] = (2 - (sum(s_eo) + 1) % 2) % 2
+    print(s_cp, s_ep)
+    if -1 in s_cp or -1 in s_co or -1 in s_ep or -1 in s_eo:
+        raise Exception('Error')
     '''
     s_cp = list(range(8))
     s_co = [0 for _ in range(8)]
@@ -273,7 +276,7 @@ def main():
     print('min len', min(lns))
     '''
     w, g, r, b, o, y = range(6)
-    arr = arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
+    arr = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w] # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
     strt = time()
     tmp = solver(arr)
     print(len(tmp), tmp)

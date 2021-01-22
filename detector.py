@@ -1,6 +1,7 @@
 # coding:utf-8
 import cv2
 from time import sleep
+from copy import deepcopy
 
 from basic_functions import *
 from controller import *
@@ -23,8 +24,9 @@ def detector():
     sleep(1)
     capture = cv2.VideoCapture(0)
     #color: wgrboy
-    color_low = [[-1 for _ in range(3)] for _ in range(6)]
-    color_hgh = [[-1 for _ in range(3)] for _ in range(6)]
+    #color_low = [[-1 for _ in range(3)] for _ in range(6)]
+    #color_hgh = [[-1 for _ in range(3)] for _ in range(6)]
+    colors = [[-1 for _ in range(3)] for _ in range(6)]
     #circlecolor = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (0, 170, 255), (0, 255, 255), (255, 255, 255)]
     vals = [[0, 0, 0] for _ in range(54)]
     for _ in range(20):
@@ -34,11 +36,20 @@ def detector():
             grab(i)
         sleep(0.1)
         release_big_half(0)
-        sleep(0.2)
+        sleep(0.3)
+        frames = []
         for _ in range(5):
             ret, frame = capture.read()
-        frame = cv2.resize(frame, (size_x, size_y))
-        hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        for _ in range(8):
+            frame = cv2.resize(frame, (size_x, size_y))
+            frames.append(frame)
+        n_frames = []
+        while len(frames) > 1:
+            for i in range(0, len(frames), 2):
+                n_frames.append(cv2.addWeighted(frames[i], 0.5, frames[i + 1], 0.5, 0))
+            frames = deepcopy(n_frames)
+            n_frames = []
+        hsv = cv2.cvtColor(frames[0],cv2.COLOR_BGR2HSV)
         for val_coord_idx in val_coord_idxes[0]:
             val_idx = idx * 9 + val_coord_idx
             coord_idx = val_coord_idx
@@ -96,30 +107,34 @@ def detector():
             for each_action in action:
                 send_command(each_action)
             if action[0][2] >= 1000:
-                sleep(0.07)
+                sleep(0.1)
             else:
                 sleep(0.3)
     #cv2.destroyAllWindows()
     capture.release()
+    white_idx = -1
+    s_min = 10000
     for color in range(6):
-        #print(vals[center_stickers[color]])
-        color_low[color] = [j - offset[i] for i, j in enumerate(vals[center_stickers[color]])]
-        color_hgh[color] = [j + offset[i] for i, j in enumerate(vals[center_stickers[color]])]
-        color_low[color][0] %= 180
-        color_hgh[color][0] %= 180
+        colors[color] = [i for i in vals[center_stickers[color]]]
+        print(color, vals[center_stickers[color]])
+        if vals[center_stickers[color]][1] < s_min:
+            white_idx = color
+            s_min = vals[center_stickers[color]][1]
     res = [-1 for _ in range(54)]
     for i in range(54):
-        for color in reversed(range(6)):
-            for k in range(3):
-                if color == 0 and k == 0:
-                    continue
-                if color_low[color][k] < color_hgh[color][k] and not color_low[color][k] <= vals[i][k] <= color_hgh[color][k]:
-                    break
-                if color_low[color][k] > color_hgh[color][k] and color_hgh[color][k] <= vals[i][k] <= color_low[color][k]:
-                    break
-            else:
+        if vals[i][1] < 50:
+            res[i] = white_idx
+            continue
+        min_error = 10000000
+        for color in range(6):
+            if color == white_idx:
+                continue
+            error = 0
+            k = 0
+            error = weight[k] * min(abs(vals[i][k] - colors[color][k]), abs(vals[i][k] - colors[color][k] - 180), abs(vals[i][k] - colors[color][k] + 180))
+            if min_error > error:
+                min_error = error
                 res[i] = color
-                break
     return res
 
 d = 40
@@ -141,6 +156,8 @@ rotate_cube = [
     [[[0, 1, 2000]], [[0, 1, 1]], [[0, 1, 1000]], [[0, 0, 2000], [1, 0, 2000]], [[0, 1, 0], [1, 1, 1]], [[0, 0, 1000], [1, 0, 1000]], [[1, 1, 2000]], [[1, 1, 0]], [[1, 1, 1000]], [[0, 1, 2000]], [[0, 1, 1]], [[0, 1, 1000]], [[0, 0, 2000], [1, 0, 2000]], [[0, 1, 0], [1, 1, 1]], [[0, 0, 1000], [1, 0, 1000]], [[1, 1, 2000]], [[1, 1, 0]], [[1, 1, 1000]]]
 ]
 center_stickers = (4, 13, 22, 31, 40, 49)
-offset = (12, 120, 120)
+#offset = (10, 120, 120)
+weight = (5, 1, 3)
+weight_white = (0, 5, 4)
 
 print('detector initialized')
