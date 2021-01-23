@@ -59,6 +59,8 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
     l1_twist = phase_solution[len_phase_solution - 1] if len_phase_solution >= 1 else -10
     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
     for twist_idx, twist in enumerate(candidate[phase]):
+        if time() - strt_search > 0.2:
+            return res
         if twist // 3 == l1_twist // 3: # don't turn same face twice
             continue
         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
@@ -79,8 +81,6 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         for idx in range(sol_size):
             res.push_back(sol[idx])
         if phase == 0 and res.size() > 50:
-            return res
-        if time() - strt_search > 0.2:
             return res
         phase_solution.pop_back()
     return res

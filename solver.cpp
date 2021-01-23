@@ -2270,12 +2270,12 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
   Py_ssize_t __pyx_t_5;
   PyObject *(*__pyx_t_6)(PyObject *);
   int __pyx_t_7;
-  int __pyx_t_8;
-  std::vector<std::vector<int> > ::size_type __pyx_t_9;
-  std::vector<std::vector<int> > ::size_type __pyx_t_10;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  int __pyx_t_10;
   std::vector<std::vector<int> > ::size_type __pyx_t_11;
-  PyObject *__pyx_t_12 = NULL;
-  PyObject *__pyx_t_13 = NULL;
+  std::vector<std::vector<int> > ::size_type __pyx_t_12;
+  std::vector<std::vector<int> > ::size_type __pyx_t_13;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2400,7 +2400,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  *     l1_twist = phase_solution[len_phase_solution - 1] if len_phase_solution >= 1 else -10
  *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10             # <<<<<<<<<<<<<<
  *     for twist_idx, twist in enumerate(candidate[phase]):
- *         if twist // 3 == l1_twist // 3: # don't turn same face twice
+ *         if time() - strt_search > 0.2:
  */
   if (((__pyx_v_len_phase_solution >= 2) != 0)) {
     __pyx_t_2 = (__pyx_v_8solver_c_phase_solution[(__pyx_v_len_phase_solution - 2)]);
@@ -2413,8 +2413,8 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  *     l1_twist = phase_solution[len_phase_solution - 1] if len_phase_solution >= 1 else -10
  *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
  *     for twist_idx, twist in enumerate(candidate[phase]):             # <<<<<<<<<<<<<<
- *         if twist // 3 == l1_twist // 3: # don't turn same face twice
- *             continue
+ *         if time() - strt_search > 0.2:
+ *             return res
  */
   __pyx_t_2 = 0;
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_candidate); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
@@ -2471,6 +2471,62 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
     /* "solver.pyx":62
  *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
  *     for twist_idx, twist in enumerate(candidate[phase]):
+ *         if time() - strt_search > 0.2:             # <<<<<<<<<<<<<<
+ *             return res
+ *         if twist // 3 == l1_twist // 3: # don't turn same face twice
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_time); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_9 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_8))) {
+      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
+      if (likely(__pyx_t_9)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_9);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_8, function);
+      }
+    }
+    __pyx_t_4 = (__pyx_t_9) ? __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_9) : __Pyx_PyObject_CallNoArg(__pyx_t_8);
+    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_8 = PyFloat_FromDouble(__pyx_v_8solver_c_strt_search); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_9 = PyNumber_Subtract(__pyx_t_4, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_8 = PyObject_RichCompare(__pyx_t_9, __pyx_float_0_2, Py_GT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (__pyx_t_1) {
+
+      /* "solver.pyx":63
+ *     for twist_idx, twist in enumerate(candidate[phase]):
+ *         if time() - strt_search > 0.2:
+ *             return res             # <<<<<<<<<<<<<<
+ *         if twist // 3 == l1_twist // 3: # don't turn same face twice
+ *             continue
+ */
+      __pyx_r = __pyx_v_res;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      goto __pyx_L0;
+
+      /* "solver.pyx":62
+ *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
+ *     for twist_idx, twist in enumerate(candidate[phase]):
+ *         if time() - strt_search > 0.2:             # <<<<<<<<<<<<<<
+ *             return res
+ *         if twist // 3 == l1_twist // 3: # don't turn same face twice
+ */
+    }
+
+    /* "solver.pyx":64
+ *         if time() - strt_search > 0.2:
+ *             return res
  *         if twist // 3 == l1_twist // 3: # don't turn same face twice             # <<<<<<<<<<<<<<
  *             continue
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
@@ -2478,8 +2534,8 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
     __pyx_t_1 = (((__pyx_v_twist / 3) == (__pyx_v_l1_twist / 3)) != 0);
     if (__pyx_t_1) {
 
-      /* "solver.pyx":63
- *     for twist_idx, twist in enumerate(candidate[phase]):
+      /* "solver.pyx":65
+ *             return res
  *         if twist // 3 == l1_twist // 3: # don't turn same face twice
  *             continue             # <<<<<<<<<<<<<<
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
@@ -2487,34 +2543,34 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
       goto __pyx_L5_continue;
 
-      /* "solver.pyx":62
- *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
- *     for twist_idx, twist in enumerate(candidate[phase]):
+      /* "solver.pyx":64
+ *         if time() - strt_search > 0.2:
+ *             return res
  *         if twist // 3 == l1_twist // 3: # don't turn same face twice             # <<<<<<<<<<<<<<
  *             continue
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
  */
     }
 
-    /* "solver.pyx":64
+    /* "solver.pyx":66
  *         if twist // 3 == l1_twist // 3: # don't turn same face twice
  *             continue
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times             # <<<<<<<<<<<<<<
  *             continue
  *         if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R
  */
-    __pyx_t_8 = (((__pyx_v_twist / 3) == (__pyx_v_l2_twist / 3)) != 0);
-    if (__pyx_t_8) {
+    __pyx_t_10 = (((__pyx_v_twist / 3) == (__pyx_v_l2_twist / 3)) != 0);
+    if (__pyx_t_10) {
     } else {
-      __pyx_t_1 = __pyx_t_8;
-      goto __pyx_L9_bool_binop_done;
+      __pyx_t_1 = __pyx_t_10;
+      goto __pyx_L10_bool_binop_done;
     }
-    __pyx_t_8 = (((__pyx_v_twist / 6) == (__pyx_v_l1_twist / 6)) != 0);
-    __pyx_t_1 = __pyx_t_8;
-    __pyx_L9_bool_binop_done:;
+    __pyx_t_10 = (((__pyx_v_twist / 6) == (__pyx_v_l1_twist / 6)) != 0);
+    __pyx_t_1 = __pyx_t_10;
+    __pyx_L10_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "solver.pyx":65
+      /* "solver.pyx":67
  *             continue
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
  *             continue             # <<<<<<<<<<<<<<
@@ -2523,7 +2579,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
       goto __pyx_L5_continue;
 
-      /* "solver.pyx":64
+      /* "solver.pyx":66
  *         if twist // 3 == l1_twist // 3: # don't turn same face twice
  *             continue
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times             # <<<<<<<<<<<<<<
@@ -2532,25 +2588,25 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     }
 
-    /* "solver.pyx":66
+    /* "solver.pyx":68
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
  *             continue
  *         if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R             # <<<<<<<<<<<<<<
  *             continue
  *         n_idx1 = trans1(phase, idx1, twist_idx)
  */
-    __pyx_t_8 = (((__pyx_v_twist / 6) == (__pyx_v_l1_twist / 6)) != 0);
-    if (__pyx_t_8) {
+    __pyx_t_10 = (((__pyx_v_twist / 6) == (__pyx_v_l1_twist / 6)) != 0);
+    if (__pyx_t_10) {
     } else {
-      __pyx_t_1 = __pyx_t_8;
-      goto __pyx_L12_bool_binop_done;
+      __pyx_t_1 = __pyx_t_10;
+      goto __pyx_L13_bool_binop_done;
     }
-    __pyx_t_8 = ((__pyx_v_twist < __pyx_v_l1_twist) != 0);
-    __pyx_t_1 = __pyx_t_8;
-    __pyx_L12_bool_binop_done:;
+    __pyx_t_10 = ((__pyx_v_twist < __pyx_v_l1_twist) != 0);
+    __pyx_t_1 = __pyx_t_10;
+    __pyx_L13_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "solver.pyx":67
+      /* "solver.pyx":69
  *             continue
  *         if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R
  *             continue             # <<<<<<<<<<<<<<
@@ -2559,7 +2615,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
       goto __pyx_L5_continue;
 
-      /* "solver.pyx":66
+      /* "solver.pyx":68
  *         if twist // 3 == l2_twist // 3 and twist // 6 == l1_twist // 6: # don't turn opposite face 3 times
  *             continue
  *         if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R             # <<<<<<<<<<<<<<
@@ -2568,7 +2624,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     }
 
-    /* "solver.pyx":68
+    /* "solver.pyx":70
  *         if twist // 6 == l1_twist // 6 and twist < l1_twist: # for example, permit R L but not L R
  *             continue
  *         n_idx1 = trans1(phase, idx1, twist_idx)             # <<<<<<<<<<<<<<
@@ -2577,7 +2633,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_n_idx1 = __pyx_f_8solver_c_trans1(__pyx_v_phase, __pyx_v_idx1, __pyx_v_twist_idx);
 
-    /* "solver.pyx":69
+    /* "solver.pyx":71
  *             continue
  *         n_idx1 = trans1(phase, idx1, twist_idx)
  *         n_idx2 = trans2(phase, idx2, twist_idx)             # <<<<<<<<<<<<<<
@@ -2586,7 +2642,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_n_idx2 = __pyx_f_8solver_c_trans2(__pyx_v_phase, __pyx_v_idx2, __pyx_v_twist_idx);
 
-    /* "solver.pyx":70
+    /* "solver.pyx":72
  *         n_idx1 = trans1(phase, idx1, twist_idx)
  *         n_idx2 = trans2(phase, idx2, twist_idx)
  *         n_idx3 = trans3(phase, idx3, twist_idx)             # <<<<<<<<<<<<<<
@@ -2595,7 +2651,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_n_idx3 = __pyx_f_8solver_c_trans3(__pyx_v_phase, __pyx_v_idx3, __pyx_v_twist_idx);
 
-    /* "solver.pyx":71
+    /* "solver.pyx":73
  *         n_idx2 = trans2(phase, idx2, twist_idx)
  *         n_idx3 = trans3(phase, idx3, twist_idx)
  *         n_dis = distance(phase, n_idx1, n_idx2, n_idx3)             # <<<<<<<<<<<<<<
@@ -2604,7 +2660,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_n_dis = __pyx_f_8solver_c_distance(__pyx_v_phase, __pyx_v_n_idx1, __pyx_v_n_idx2, __pyx_v_n_idx3);
 
-    /* "solver.pyx":72
+    /* "solver.pyx":74
  *         n_idx3 = trans3(phase, idx3, twist_idx)
  *         n_dis = distance(phase, n_idx1, n_idx2, n_idx3)
  *         if n_dis > depth:             # <<<<<<<<<<<<<<
@@ -2614,7 +2670,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
     __pyx_t_1 = ((__pyx_v_n_dis > __pyx_v_depth) != 0);
     if (__pyx_t_1) {
 
-      /* "solver.pyx":73
+      /* "solver.pyx":75
  *         n_dis = distance(phase, n_idx1, n_idx2, n_idx3)
  *         if n_dis > depth:
  *             continue             # <<<<<<<<<<<<<<
@@ -2623,7 +2679,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
       goto __pyx_L5_continue;
 
-      /* "solver.pyx":72
+      /* "solver.pyx":74
  *         n_idx3 = trans3(phase, idx3, twist_idx)
  *         n_dis = distance(phase, n_idx1, n_idx2, n_idx3)
  *         if n_dis > depth:             # <<<<<<<<<<<<<<
@@ -2632,7 +2688,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     }
 
-    /* "solver.pyx":74
+    /* "solver.pyx":76
  *         if n_dis > depth:
  *             continue
  *         phase_solution.push_back(twist)             # <<<<<<<<<<<<<<
@@ -2643,10 +2699,10 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
       __pyx_v_8solver_c_phase_solution.push_back(__pyx_v_twist);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 74, __pyx_L1_error)
+      __PYX_ERR(0, 76, __pyx_L1_error)
     }
 
-    /* "solver.pyx":75
+    /* "solver.pyx":77
  *             continue
  *         phase_solution.push_back(twist)
  *         sol = phase_search(phase, n_idx1, n_idx2, n_idx3, depth, n_dis, len_phase_solution + 1)             # <<<<<<<<<<<<<<
@@ -2655,7 +2711,7 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_sol = __pyx_f_8solver_c_phase_search(__pyx_v_phase, __pyx_v_n_idx1, __pyx_v_n_idx2, __pyx_v_n_idx3, __pyx_v_depth, __pyx_v_n_dis, (__pyx_v_len_phase_solution + 1));
 
-    /* "solver.pyx":76
+    /* "solver.pyx":78
  *         phase_solution.push_back(twist)
  *         sol = phase_search(phase, n_idx1, n_idx2, n_idx3, depth, n_dis, len_phase_solution + 1)
  *         sol_size = sol.size()             # <<<<<<<<<<<<<<
@@ -2664,19 +2720,19 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  */
     __pyx_v_sol_size = __pyx_v_sol.size();
 
-    /* "solver.pyx":79
+    /* "solver.pyx":81
  *         #if phase == 1 and sol_size: # only one solution needed
  *         #    return sol
  *         for idx in range(sol_size):             # <<<<<<<<<<<<<<
  *             res.push_back(sol[idx])
  *         if phase == 0 and res.size() > 50:
  */
-    __pyx_t_9 = __pyx_v_sol_size;
-    __pyx_t_10 = __pyx_t_9;
-    for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
-      __pyx_v_idx = __pyx_t_11;
+    __pyx_t_11 = __pyx_v_sol_size;
+    __pyx_t_12 = __pyx_t_11;
+    for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
+      __pyx_v_idx = __pyx_t_13;
 
-      /* "solver.pyx":80
+      /* "solver.pyx":82
  *         #    return sol
  *         for idx in range(sol_size):
  *             res.push_back(sol[idx])             # <<<<<<<<<<<<<<
@@ -2687,87 +2743,31 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
         __pyx_v_res.push_back((__pyx_v_sol[__pyx_v_idx]));
       } catch(...) {
         __Pyx_CppExn2PyErr();
-        __PYX_ERR(0, 80, __pyx_L1_error)
+        __PYX_ERR(0, 82, __pyx_L1_error)
       }
-    }
-
-    /* "solver.pyx":81
- *         for idx in range(sol_size):
- *             res.push_back(sol[idx])
- *         if phase == 0 and res.size() > 50:             # <<<<<<<<<<<<<<
- *             return res
- *         if time() - strt_search > 0.2:
- */
-    __pyx_t_8 = ((__pyx_v_phase == 0) != 0);
-    if (__pyx_t_8) {
-    } else {
-      __pyx_t_1 = __pyx_t_8;
-      goto __pyx_L18_bool_binop_done;
-    }
-    __pyx_t_8 = ((__pyx_v_res.size() > 50) != 0);
-    __pyx_t_1 = __pyx_t_8;
-    __pyx_L18_bool_binop_done:;
-    if (__pyx_t_1) {
-
-      /* "solver.pyx":82
- *             res.push_back(sol[idx])
- *         if phase == 0 and res.size() > 50:
- *             return res             # <<<<<<<<<<<<<<
- *         if time() - strt_search > 0.2:
- *             return res
- */
-      __pyx_r = __pyx_v_res;
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      goto __pyx_L0;
-
-      /* "solver.pyx":81
- *         for idx in range(sol_size):
- *             res.push_back(sol[idx])
- *         if phase == 0 and res.size() > 50:             # <<<<<<<<<<<<<<
- *             return res
- *         if time() - strt_search > 0.2:
- */
     }
 
     /* "solver.pyx":83
- *         if phase == 0 and res.size() > 50:
- *             return res
- *         if time() - strt_search > 0.2:             # <<<<<<<<<<<<<<
+ *         for idx in range(sol_size):
+ *             res.push_back(sol[idx])
+ *         if phase == 0 and res.size() > 50:             # <<<<<<<<<<<<<<
  *             return res
  *         phase_solution.pop_back()
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_time); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_13 = NULL;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_12))) {
-      __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_12);
-      if (likely(__pyx_t_13)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_12);
-        __Pyx_INCREF(__pyx_t_13);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_12, function);
-      }
+    __pyx_t_10 = ((__pyx_v_phase == 0) != 0);
+    if (__pyx_t_10) {
+    } else {
+      __pyx_t_1 = __pyx_t_10;
+      goto __pyx_L19_bool_binop_done;
     }
-    __pyx_t_4 = (__pyx_t_13) ? __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_13) : __Pyx_PyObject_CallNoArg(__pyx_t_12);
-    __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = PyFloat_FromDouble(__pyx_v_8solver_c_strt_search); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_13 = PyNumber_Subtract(__pyx_t_4, __pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_13);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = PyObject_RichCompare(__pyx_t_13, __pyx_float_0_2, Py_GT); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 83, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_10 = ((__pyx_v_res.size() > 50) != 0);
+    __pyx_t_1 = __pyx_t_10;
+    __pyx_L19_bool_binop_done:;
     if (__pyx_t_1) {
 
       /* "solver.pyx":84
- *             return res
- *         if time() - strt_search > 0.2:
+ *             res.push_back(sol[idx])
+ *         if phase == 0 and res.size() > 50:
  *             return res             # <<<<<<<<<<<<<<
  *         phase_solution.pop_back()
  *     return res
@@ -2777,16 +2777,16 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
       goto __pyx_L0;
 
       /* "solver.pyx":83
- *         if phase == 0 and res.size() > 50:
- *             return res
- *         if time() - strt_search > 0.2:             # <<<<<<<<<<<<<<
+ *         for idx in range(sol_size):
+ *             res.push_back(sol[idx])
+ *         if phase == 0 and res.size() > 50:             # <<<<<<<<<<<<<<
  *             return res
  *         phase_solution.pop_back()
  */
     }
 
     /* "solver.pyx":85
- *         if time() - strt_search > 0.2:
+ *         if phase == 0 and res.size() > 50:
  *             return res
  *         phase_solution.pop_back()             # <<<<<<<<<<<<<<
  *     return res
@@ -2798,8 +2798,8 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
  *     l1_twist = phase_solution[len_phase_solution - 1] if len_phase_solution >= 1 else -10
  *     l2_twist = phase_solution[len_phase_solution - 2] if len_phase_solution >= 2 else -10
  *     for twist_idx, twist in enumerate(candidate[phase]):             # <<<<<<<<<<<<<<
- *         if twist // 3 == l1_twist // 3: # don't turn same face twice
- *             continue
+ *         if time() - strt_search > 0.2:
+ *             return res
  */
     __pyx_L5_continue:;
   }
@@ -2827,8 +2827,8 @@ static std::vector<std::vector<int> >  __pyx_f_8solver_c_phase_search(int __pyx_
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_XDECREF(__pyx_t_13);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
   __Pyx_WriteUnraisable("solver_c.phase_search", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
   __Pyx_pretend_to_initialize(&__pyx_r);
   __pyx_L0:;
@@ -8936,8 +8936,8 @@ static PyMethodDef __pyx_methods[] = {
 static int __pyx_import_star_set(PyObject *o, PyObject* py_name, char *name) {
   static const char* internal_type_names[] = {
     "X",
-    "__pyx_ctuple_96eb6__1da68__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc",
-    "__pyx_ctuple_96eb6__1da68__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc_struct",
+    "__pyx_ctuple_c96a__2b5b7__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc",
+    "__pyx_ctuple_c96a__2b5b7__std__in_vector__lAngstd__in_vector__lAngint__rAng__rAng__in_size_type__etc__etc_struct",
     "__pyx_ctuple_int",
     "__pyx_ctuple_int__and_long",
     "__pyx_ctuple_int__and_long_struct",
@@ -9286,7 +9286,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(0, 228, __pyx_L1_error)
   __pyx_builtin_map = __Pyx_GetBuiltinName(__pyx_n_s_map); if (!__pyx_builtin_map) __PYX_ERR(0, 228, __pyx_L1_error)
   __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 277, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 81, __pyx_L1_error)
   __pyx_builtin_sum = __Pyx_GetBuiltinName(__pyx_n_s_sum); if (!__pyx_builtin_sum) __PYX_ERR(0, 140, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 81, __pyx_L1_error)
   __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(1, 81, __pyx_L1_error)

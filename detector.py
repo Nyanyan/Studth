@@ -76,7 +76,7 @@ def detector():
             cv2.destroyAllWindows()
         
         grab_half(0)
-        sleep(0.3)
+        sleep(0.25)
         release_big_half(1)
         sleep(0.2)
         for _ in range(5):
@@ -107,9 +107,9 @@ def detector():
             for each_action in action:
                 send_command(each_action)
             if action[0][2] >= 1000:
-                sleep(0.1)
+                sleep(0.08)
             else:
-                sleep(0.3)
+                sleep(0.25)
     #cv2.destroyAllWindows()
     capture.release()
     white_idx = -1
