@@ -77,7 +77,7 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         #    return sol
         for idx in range(sol_size):
             res.push_back(sol[idx])
-        if res.size() > 50:
+        if res.size() > 100:
             return res
         phase_solution.pop_back()
     return res
@@ -185,6 +185,7 @@ def solver(stickers):
                                 l = min(l, len(n_solution) + 1)
                         if phase == 0:
                             min_phase0_depth = depth + 1
+                        break
             search_lst = []
             for i, arrs in enumerate(n_search_lst):
                 search_lst.append([])
