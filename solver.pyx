@@ -73,8 +73,8 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         phase_solution.push_back(twist)
         sol = phase_search(phase, n_idx1, n_idx2, n_idx3, depth, n_dis, len_phase_solution + 1)
         sol_size = sol.size()
-        if phase == 1 and sol_size: # only one solution needed
-            return sol
+        #if phase == 1 and sol_size: # only one solution needed
+        #    return sol
         for idx in range(sol_size):
             res.push_back(sol[idx])
         if res.size() > 50:
@@ -125,6 +125,8 @@ def solver(stickers):
     min_phase0_depth = 0
     res = []
     l = 27
+    max_phase0_depth = 21
+    break_flag = False
     
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
     if s_cp.count(-1) == 1 and len((set(range(8)) - set(s_cp))) == 1:
@@ -158,6 +160,9 @@ def solver(stickers):
             for cp, co, ep, eo, last_solution in search_lst:
                 idx1, idx2, idx3 = idxes_init(phase, cp, co, ep, eo)
                 dis = distance(phase, idx1, idx2, idx3)
+                if dis == 0:
+                    n_search_lst.append([cp, co, ep, eo, last_solution])
+                    continue
                 phase_solution = []
                 strt_depth = dis if phase == 1 else max(dis, min_phase0_depth)
                 for depth in range(strt_depth, l - len(last_solution)):
@@ -177,13 +182,21 @@ def solver(stickers):
                                 n_solution.append(twist)
                             n_search_lst.append([n_cp, n_co, n_ep, n_eo, n_solution])
                             if phase == 1:
-                                l = min(l, len(n_solution))
+                                l = min(l, len(n_solution) + 1)
                         if phase == 0:
                             min_phase0_depth = depth + 1
-                        break
-            search_lst = [[i for i in j] for j in n_search_lst]
+            search_lst = []
+            for i, arrs in enumerate(n_search_lst):
+                search_lst.append([])
+                for j, arr in enumerate(arrs):
+                    search_lst[i].append([])
+                    for val in arr:
+                        search_lst[i][j].append(val)
             n_search_lst = []
             print('max len', l, 'phase', phase, 'depth', depth, 'found solutions', len(search_lst))
+            if phase == 0 and len(search_lst) == 0:
+                break_flag = True
+                break
         if search_lst:
             len_res = 1000
             res = []
@@ -192,8 +205,10 @@ def solver(stickers):
                 if robotized_res_can.size() < len_res:
                     res = list(robotized_res_can)
                     len_res = robotized_res_can.size()
+        elif min_phase0_depth >= max_phase0_depth or break_flag:
+            break
         #else:
-        break
+        #min_phase0_depth += 1
     return res
 
 cdef vector[int] phase_solution = []
