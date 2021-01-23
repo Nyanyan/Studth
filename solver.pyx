@@ -248,7 +248,7 @@ with open('prun_phase1_ep_ep.csv', mode='r') as f:
     for idx2, line in enumerate(map(str.strip, f)):
         for idx3, i in enumerate(line.replace('\n', '').split(',')):
             prun_phase1_ep_ep[idx2][idx3] = int(i)
-print('initialize done')
+print('solver initialized')
 
 
 ''' TEST '''
