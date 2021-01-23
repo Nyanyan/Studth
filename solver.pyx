@@ -5,6 +5,7 @@ import cython
 from libcpp.vector cimport vector
 from libcpp cimport bool
 
+from time import time
 from basic_functions import *
 
 cdef idxes_init(int phase, cp, co, ep, eo):
@@ -77,7 +78,9 @@ cdef vector[vector[int]] phase_search(int phase, int idx1, int idx2, int idx3, i
         #    return sol
         for idx in range(sol_size):
             res.push_back(sol[idx])
-        if res.size() > 100:
+        if phase == 0 and res.size() > 50:
+            return res
+        if time() - strt_search > 0.2:
             return res
         phase_solution.pop_back()
     return res
@@ -121,11 +124,11 @@ cdef vector[int] robotize(vector[int] arr, int idx, int direction, bool rotated)
 
 
 def solver(stickers):
-    global phase_solution
+    global phase_solution, strt_search
     min_phase0_depth = 0
     res = []
     l = 27
-    max_phase0_depth = 21
+    max_phase0_depth = 15
     break_flag = False
     
     s_cp, s_co, s_ep, s_eo = sticker2arr(stickers)
@@ -165,9 +168,12 @@ def solver(stickers):
                     continue
                 phase_solution = []
                 strt_depth = dis if phase == 1 else max(dis, min_phase0_depth)
+                cnt = 0
                 for depth in range(strt_depth, l - len(last_solution)):
+                    strt_search = time()
                     sol = phase_search(phase, idx1, idx2, idx3, depth, dis, 0)
                     if sol.size():
+                        cnt += 1
                         for solution in sol:
                             n_cp = [i for i in cp]
                             n_co = [i for i in co]
@@ -185,7 +191,8 @@ def solver(stickers):
                                 l = min(l, len(n_solution) + 1)
                         if phase == 0:
                             min_phase0_depth = depth + 1
-                        break
+                        if phase == 0 or (phase == 1 and cnt >= 2):
+                            break
             search_lst = []
             for i, arrs in enumerate(n_search_lst):
                 search_lst.append([])
@@ -210,9 +217,12 @@ def solver(stickers):
             break
         #else:
         #min_phase0_depth += 1
+    print('solution lengh', len(res), 'length for human', l - 1)
     return res
 
 cdef vector[int] phase_solution = []
+cdef double strt_search
+
 cdef int[2187][14] trans_co
 with open('trans_co.csv', mode='r') as f:
     for idx, line in enumerate(map(str.strip, f)):
@@ -269,7 +279,6 @@ print('solver initialized')
 
 ''' TEST '''
 def main():
-    from time import time
     '''
     num = 100
     tim = []
