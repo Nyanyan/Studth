@@ -122,7 +122,7 @@ def detector():
             s_min = vals[center_stickers[color]][1]
     res = [-1 for _ in range(54)]
     for i in range(54):
-        if vals[i][1] < 50:
+        if vals[i][1] < 75:
             res[i] = white_idx
             continue
         min_error = 10000000

@@ -2,20 +2,12 @@
 
 const int offset = 10;
 
-/* for arm 2 and 3 */
-const int grb[2] = {100, 105};
-const int rls[2] = {75, 70};
-const int rls_big[2] = {30, 30};
+const int grb[2] = {105, 105};
+const int rls[2] = {80, 80};
+const int rls_big[2] = {40, 40};
 const int rot_l[2] = {180, 180};
 const int rot_r[2] = {85, 85};
 
-/* for arm 0 and 1 
-const int grb[2] = {105, 100};
-const int rls[2] = {65, 70};
-const int rls_big[2] = {30, 30};
-const int rot_l[2] = {180, 180};
-const int rot_r[2] = {75, 85};
-*/
 
 char buf[30];
 int idx = 0;
@@ -46,10 +38,10 @@ void release_big_arm(int num) {
 
 void setup() {
   Serial.begin(115200);
-  arm_rot[0].attach(7);
-  arm_grab[0].attach(8);
-  arm_rot[1].attach(11);
-  arm_grab[1].attach(12);
+  arm_rot[0].attach(11);
+  arm_grab[0].attach(12);
+  arm_rot[1].attach(7);
+  arm_grab[1].attach(8);
   for (int i = 0; i < 2; i++) arm_rot[i].write(rot_l[i]);
   for (int i = 0; i < 2; i++) arm_grab[i].write(grb[i]);
 }

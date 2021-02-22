@@ -24,15 +24,15 @@ def controller(solution):
     for twist in solution:
         for i in range(4):
             grab(i)
-        sleep(0.04)
+        sleep(0.1)
         #print(twist, twists_key[twist])
         for action in twists_key[twist]:
             for each_action in action:
                 send_command(each_action)
             if action[0][2] >= 1000:
-                sleep(0.07)
+                sleep(0.15)
             else:
-                sleep(0.26)
+                sleep(0.3)
         #sleep(1)
 
 ser_motor = [None, None]

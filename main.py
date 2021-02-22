@@ -10,7 +10,12 @@ while True:
     s = input()
     if s == 'exit':
         exit()
-    stickers = detector()
+    elif s == 'test':
+        w, g, r, b, o, y = range(6)
+        # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
+        stickers = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w]
+    else:
+        stickers = detector()
     for i in range(6):
         print(stickers[i * 9:i * 9 + 9])
     try:
