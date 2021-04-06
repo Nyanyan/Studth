@@ -2,10 +2,14 @@
 
 const int offset = 10;
 
+const int offset_0 = 0;
+const int offset_1 = 0;
+
+
 /* for arm 2 and 3 */
-const int grb[2] = {100, 105};
-const int rls[2] = {75, 70};
-const int rls_big[2] = {30, 30};
+const int grb[2] = {100+offset_0, 105+offset_1};
+const int rls[2] = {75+offset_0, 70+offset_1};
+const int rls_big[2] = {25+offset_0, 30+offset_1};
 const int rot_l[2] = {180, 180};
 const int rot_r[2] = {85, 85};
 
