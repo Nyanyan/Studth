@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#define c_h 1.5
+#define c_h 1.6
 #define table_weight 0.9
 
 #define n_stickers 54
