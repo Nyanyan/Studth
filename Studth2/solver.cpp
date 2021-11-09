@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#define c_h 1.1
+#define c_h 1.5
 #define table_weight 0.9
 
 #define n_stickers 54
@@ -425,7 +425,7 @@ inline double predict_phase0(const int stickers[n_stickers]){
     sticker2idx_phase0(stickers, idxes);
     min_res = max(prune_phase0_ep_co[idxes[2]][idxes[0]], prune_phase0_ep_eo[idxes[2]][idxes[1]]);
     //return c_h * min_res;
-    if (min_res <= 2.0)
+    if (min_res <= 4.0)
         return c_h * min_res;
 
     // create input array
@@ -493,7 +493,7 @@ inline double predict_phase1(int stickers[n_stickers]){
     sticker2idx_phase1(stickers, idxes);
     min_res = max(prune_phase1_ep_cp[idxes[2]][idxes[0]], prune_phase1_ep_ep[idxes[2]][idxes[1]]);
     //return c_h * min_res;
-    if (min_res <= 2.0)
+    if (min_res <= 4.0)
         return c_h * min_res;
 
     // create input array
