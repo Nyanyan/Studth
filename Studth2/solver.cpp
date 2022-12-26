@@ -659,13 +659,13 @@ vector<vector<int>> phase0(const int stickers[n_stickers], int *visited_nodes){
             if (calc_axis(mov) == calc_axis(elem.solution[sol_size - 1]) && mov < elem.solution[sol_size - 1])
                 continue;
             a_star_elem n_elem;
-            move_sticker(elem.stickers, n_elem.stickers, mov);
             #if USE_FAST_MODIFICATION
+                if (*visited_nodes <= USE_HEURISTIC_NODE_THRESHOLD_PHASE0)
+                    move_sticker(elem.stickers, n_elem.stickers, mov);
                 move_idxes_phase0(elem.idxes, n_elem.idxes, mov);
-            #endif
-            #if USE_FAST_MODIFICATION
                 dis = predict_phase0(n_elem.stickers, *visited_nodes, n_elem.idxes);
             #else
+                move_sticker(elem.stickers, n_elem.stickers, mov);
                 dis = predict_phase0(n_elem.stickers, *visited_nodes);
             #endif
             n_elem.f = sol_size + dis;
@@ -730,13 +730,13 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, int *visited_nodes){
                     continue;
             }
             a_star_elem n_elem;
-            move_sticker(elem.stickers, n_elem.stickers, mov);
             #if USE_FAST_MODIFICATION
+                if (*visited_nodes <= USE_HEURISTIC_NODE_THRESHOLD_PHASE1)
+                    move_sticker(elem.stickers, n_elem.stickers, mov);
                 move_idxes_phase1(elem.idxes, n_elem.idxes, mov_idx);
-            #endif
-            #if USE_FAST_MODIFICATION
                 dis = predict_phase1(n_elem.stickers, *visited_nodes, n_elem.idxes);
             #else
+                move_sticker(elem.stickers, n_elem.stickers, mov);
                 dis = predict_phase1(n_elem.stickers, *visited_nodes);
             #endif
             n_elem.f = sol_size + 1 + dis;
