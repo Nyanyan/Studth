@@ -15,6 +15,18 @@
 
 using namespace std;
 
+// phase0での最大ノード訪問回数
+#define N_MAX_PHASE0_NODES 50000
+
+// phase1での最大ノード訪問回数
+#define N_MAX_PHASE1_NODES 100000
+
+// phase0で受け入れる最大の解の個数(1000000000など大きな値に設定すれば、ノード訪問回数がN_MAX_PHASE1_NODESに達するまで探索することになります)
+#define N_MAX_PHASE0_SOLUTIONS 5000
+
+// ついでに行った高速化を使うかどうか(使う場合、trans_*.txtのファイルが必要になります)
+#define USE_FAST_MODIFICATION true
+
 #define c_h 1.6
 #define table_weight 0.9
 
@@ -45,6 +57,14 @@ using namespace std;
 #define n_ep_phase1_0 40320
 #define n_ep_phase1_1 24
 #define n_eo 2048
+
+#define IDX_UNDEFINED -1
+
+// 解を安定して得るための定数
+const int USE_HEURISTIC_NODE_THRESHOLD_PHASE0 = N_MAX_PHASE0_NODES * 0.5;
+const int USE_HEURISTIC_NODE_THRESHOLD_PHASE1 = N_MAX_PHASE1_NODES * 0.5;
+#define USE_HEURISTIC_THRESHOLD_PHASE0 4.0
+#define USE_HEURISTIC_THRESHOLD_PHASE1 4.0
 
 /*
 sticker numbering
@@ -97,14 +117,14 @@ double phase1_bias_residual[n_phase1_n_residual][n_phase1_dense_residual];
 double phase1_dense2[n_phase1_dense_residual];
 double phase1_bias2;
 const int phase1_move_candidate[n_phase1_moves] = {1, 4, 6, 7, 8, 9, 10, 11, 13, 16};
-/*
-int trans_co[n_co][n_phase0_moves];
-int trans_cp[n_cp][n_phase1_moves];
-int trans_ep_phase0[n_ep_phase0][n_phase0_moves];
-int trans_ep_phase1_0[n_ep_phase1_0][n_phase1_moves];
-int trans_ep_phase1_1[n_ep_phase1_1][n_phase1_moves];
-int trans_eo[n_eo][n_phase0_moves];
-*/
+#if USE_FAST_MODIFICATION
+    int trans_co[n_co][n_phase0_moves];
+    int trans_cp[n_cp][n_phase1_moves];
+    int trans_ep_phase0[n_ep_phase0][n_phase0_moves];
+    int trans_ep_phase1_0[n_ep_phase1_0][n_phase1_moves];
+    int trans_ep_phase1_1[n_ep_phase1_1][n_phase1_moves];
+    int trans_eo[n_eo][n_phase0_moves];
+#endif
 double prune_phase0_ep_co[n_ep_phase0][n_co];
 double prune_phase0_ep_eo[n_ep_phase0][n_eo];
 double prune_phase1_ep_cp[n_ep_phase1_1][n_cp];
@@ -197,55 +217,6 @@ inline void init(){
     for (i = 0; i < n_phase1_dense_residual; ++i)
         phase1_dense2[i] = get_element(cbuf, fp);
     phase1_bias2 = get_element(cbuf, fp);
-    /*
-    if ((fp = fopen("param/trans_co.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_co; ++i)
-        for (j = 0; j < n_phase0_moves; ++j)
-            trans_co[i][j] = get_element(cbuf, fp);
-    
-    if ((fp = fopen("param/trans_cp.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_cp; ++i)
-        for (j = 0; j < n_phase1_moves; ++j)
-            trans_cp[i][j] = get_element(cbuf, fp);
-
-    if ((fp = fopen("param/trans_ep_phase0.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_ep_phase0; ++i)
-        for (j = 0; j < n_phase0_moves; ++j)
-            trans_ep_phase0[i][j] = get_element(cbuf, fp);
-    
-    if ((fp = fopen("param/trans_ep_phase1_0.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_ep_phase1_0; ++i)
-        for (j = 0; j < n_phase1_moves; ++j)
-            trans_ep_phase1_0[i][j] = get_element(cbuf, fp);
-    
-    if ((fp = fopen("param/trans_ep_phase1_1.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_ep_phase1_1; ++i)
-        for (j = 0; j < n_phase1_moves; ++j)
-            trans_ep_phase1_1[i][j] = get_element(cbuf, fp);
-    
-    if ((fp = fopen("param/trans_eo.txt", "r")) == NULL){
-        printf("param file not exist");
-        exit(1);
-    }
-    for (i = 0; i < n_eo; ++i)
-        for (j = 0; j < n_phase0_moves; ++j)
-            trans_eo[i][j] = get_element(cbuf, fp);
-    */
     if ((fp = fopen("param/prune_phase0_ep_co.txt", "r")) == NULL){
         printf("param file not exist");
         exit(1);
@@ -277,7 +248,55 @@ inline void init(){
     for (i = 0; i < n_ep_phase1_1; ++i)
         for (j = 0; j < n_ep_phase1_0; ++j)
             prune_phase1_ep_ep[i][j] = get_element(cbuf, fp);
-    
+    #if USE_FAST_MODIFICATION
+        if ((fp = fopen("param/trans_co.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_co; ++i)
+            for (j = 0; j < n_phase0_moves; ++j)
+                trans_co[i][j] = get_element(cbuf, fp);
+        
+        if ((fp = fopen("param/trans_cp.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_cp; ++i)
+            for (j = 0; j < n_phase1_moves; ++j)
+                trans_cp[i][j] = get_element(cbuf, fp);
+
+        if ((fp = fopen("param/trans_ep_phase0.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_ep_phase0; ++i)
+            for (j = 0; j < n_phase0_moves; ++j)
+                trans_ep_phase0[i][j] = get_element(cbuf, fp);
+        
+        if ((fp = fopen("param/trans_ep_phase1_1.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_ep_phase1_0; ++i)
+            for (j = 0; j < n_phase1_moves; ++j)
+                trans_ep_phase1_0[i][j] = get_element(cbuf, fp);
+        
+        if ((fp = fopen("param/trans_ep_phase1_2.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_ep_phase1_1; ++i)
+            for (j = 0; j < n_phase1_moves; ++j)
+                trans_ep_phase1_1[i][j] = get_element(cbuf, fp);
+        
+        if ((fp = fopen("param/trans_eo.txt", "r")) == NULL){
+            printf("param file not exist");
+            exit(1);
+        }
+        for (i = 0; i < n_eo; ++i)
+            for (j = 0; j < n_phase0_moves; ++j)
+                trans_eo[i][j] = get_element(cbuf, fp);
+    #endif
     fac[0] = 1;
     for (i = 1; i < 13; ++i)
         fac[i] = fac[i - 1] * i;
@@ -414,19 +433,26 @@ inline double leaky_relu(double x){
     return max(x, 0.01 * x);
 }
 
-inline double predict_phase0(const int stickers[n_stickers]){
+#if USE_FAST_MODIFICATION
+    inline double predict_phase0(const int stickers[n_stickers], int n_nodes, int idxes[]){
+#else
+    inline double predict_phase0(const int stickers[n_stickers], int n_nodes){
+#endif
+    double min_res;
+
+    #if !USE_FAST_MODIFICATION
+        int idxes[n_phase0_idxes];
+        sticker2idx_phase0(stickers, idxes);
+    #endif
+    min_res = max(prune_phase0_ep_co[idxes[2]][idxes[0]], prune_phase0_ep_eo[idxes[2]][idxes[1]]);
+    //return c_h * min_res;
+    if (min_res <= USE_HEURISTIC_THRESHOLD_PHASE0 || n_nodes > USE_HEURISTIC_NODE_THRESHOLD_PHASE0)
+        return c_h * min_res;
+    
     double in_arr[n_phase0_in];
     double hidden0[32], hidden1[32];
     double res;
     int i, j, ri;
-    int idxes[n_phase0_idxes];
-    double min_res;
-
-    sticker2idx_phase0(stickers, idxes);
-    min_res = max(prune_phase0_ep_co[idxes[2]][idxes[0]], prune_phase0_ep_eo[idxes[2]][idxes[1]]);
-    //return c_h * min_res;
-    if (min_res <= 4.0)
-        return c_h * min_res;
 
     // create input array
     for (i = 0; i < n_stickers; ++i){
@@ -482,22 +508,28 @@ inline double predict_phase0(const int stickers[n_stickers]){
     return c_h * (res + table_weight * min_res) / (1.0 + table_weight);
 }
 
-inline double predict_phase1(int stickers[n_stickers]){
+#if USE_FAST_MODIFICATION
+    inline double predict_phase1(int stickers[n_stickers], int n_nodes, int idxes[]){
+#else
+    inline double predict_phase1(int stickers[n_stickers], int n_nodes){
+#endif
+    double min_res;
+
+    #if !USE_FAST_MODIFICATION
+        int idxes[n_phase1_idxes];
+        sticker2idx_phase1(stickers, idxes);
+    #endif
+    min_res = max(prune_phase1_ep_cp[idxes[2]][idxes[0]], prune_phase1_ep_ep[idxes[2]][idxes[1]]);
+    //return c_h * min_res;
+    if (min_res <= USE_HEURISTIC_THRESHOLD_PHASE1 || n_nodes > USE_HEURISTIC_NODE_THRESHOLD_PHASE1)
+        return c_h * min_res;
+    
     double in_arr[n_phase1_in];
     double hidden0[32], hidden1[32];
     double res;
     int i, j, ri, idx, color;
-    int idxes[n_phase1_idxes];
-    double min_res;
-
-    sticker2idx_phase1(stickers, idxes);
-    min_res = max(prune_phase1_ep_cp[idxes[2]][idxes[0]], prune_phase1_ep_ep[idxes[2]][idxes[1]]);
-    //return c_h * min_res;
-    if (min_res <= 4.0)
-        return c_h * min_res;
 
     // create input array
-    
     idx = 0;
     for (color = 0; color <= 5; color += 5){
         for (i = 0; i < 9; ++i){
@@ -565,6 +597,9 @@ struct a_star_elem{
     int stickers[n_stickers];
     vector<int> solution;
     bool first = false;
+    #if USE_FAST_MODIFICATION
+        int idxes[3];
+    #endif
 };
 
 bool operator< (const a_star_elem &a, const a_star_elem &b){
@@ -576,9 +611,21 @@ struct solver_elem{
     vector<int> solution;
 };
 
-int visited_nodes;
+#if USE_FAST_MODIFICATION
+    void move_idxes_phase0(int idxes[], int res[], int mov){
+        res[0] = trans_co[idxes[0]][mov];
+        res[1] = trans_eo[idxes[1]][mov];
+        res[2] = trans_ep_phase0[idxes[2]][mov];
+    }
 
-vector<vector<int>> phase0(const int stickers[n_stickers], long long tl){
+    void move_idxes_phase1(int idxes[], int res[], int mov_idx){
+        res[0] = trans_cp[idxes[0]][mov_idx];
+        res[1] = trans_ep_phase1_0[idxes[1]][mov_idx];
+        res[2] = trans_ep_phase1_1[idxes[2]][mov_idx];
+    }
+#endif
+
+vector<vector<int>> phase0(const int stickers[n_stickers], int *visited_nodes){
     int i, mov, sol_size;
     double dis;
     priority_queue<a_star_elem> que;
@@ -586,7 +633,14 @@ vector<vector<int>> phase0(const int stickers[n_stickers], long long tl){
     vector<vector<int>> res;
     for (i = 0; i < n_stickers; ++i)
         first_elem.stickers[i] = stickers[i];
-    first_elem.f = predict_phase0(first_elem.stickers);
+    #if USE_FAST_MODIFICATION
+        sticker2idx_phase0(first_elem.stickers, first_elem.idxes);
+    #endif
+    #if USE_FAST_MODIFICATION
+        first_elem.f = predict_phase0(first_elem.stickers, *visited_nodes, first_elem.idxes);
+    #else
+        first_elem.f = predict_phase0(first_elem.stickers, *visited_nodes);
+    #endif
     if (first_elem.f == 0.0){
         vector<int> solution;
         res.push_back(solution);
@@ -595,8 +649,7 @@ vector<vector<int>> phase0(const int stickers[n_stickers], long long tl){
     first_elem.solution.push_back(-1000);
     que.push(first_elem);
     long long strt = tim();
-    while (que.size() && tim() - strt < tl){
-        ++visited_nodes;
+    while (que.size() && *visited_nodes < N_MAX_PHASE0_NODES && res.size() < N_MAX_PHASE0_SOLUTIONS){
         elem = que.top();
         que.pop();
         sol_size = elem.solution.size();
@@ -607,7 +660,14 @@ vector<vector<int>> phase0(const int stickers[n_stickers], long long tl){
                 continue;
             a_star_elem n_elem;
             move_sticker(elem.stickers, n_elem.stickers, mov);
-            dis = predict_phase0(n_elem.stickers);
+            #if USE_FAST_MODIFICATION
+                move_idxes_phase0(elem.idxes, n_elem.idxes, mov);
+            #endif
+            #if USE_FAST_MODIFICATION
+                dis = predict_phase0(n_elem.stickers, *visited_nodes, n_elem.idxes);
+            #else
+                dis = predict_phase0(n_elem.stickers, *visited_nodes);
+            #endif
             n_elem.f = sol_size + dis;
             for (i = 0; i < sol_size; ++i)
                 n_elem.solution.push_back(elem.solution[i]);
@@ -622,12 +682,14 @@ vector<vector<int>> phase0(const int stickers[n_stickers], long long tl){
             } else
                 que.push(n_elem);
         }
+        ++(*visited_nodes);
     }
     return res;
 }
 
-vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
+vector<vector<int>> phase1(vector<solver_elem> inputs, int *visited_nodes){
     int i, j, mov, mov_idx, sol_size;
+    int min_solution_length = 10000000;
     double dis;
     priority_queue<a_star_elem> que;
     a_star_elem elem;
@@ -636,9 +698,16 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
         a_star_elem first_elem;
         for (j = 0; j < n_stickers; ++j)
             first_elem.stickers[j] = inputs[i].stickers[j];
+        #if USE_FAST_MODIFICATION
+            sticker2idx_phase1(first_elem.stickers, first_elem.idxes);
+        #endif
         for (j = 0; j < (int)inputs[i].solution.size(); ++j)
             first_elem.solution.push_back(inputs[i].solution[j]);
-        dis = predict_phase1(first_elem.stickers);
+        #if USE_FAST_MODIFICATION
+            dis = predict_phase1(first_elem.stickers, *visited_nodes, first_elem.idxes);
+        #else
+            dis = predict_phase1(first_elem.stickers, *visited_nodes);
+        #endif
         if (dis == 0){
             res.push_back(first_elem.solution);
             continue;
@@ -648,8 +717,7 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
         que.push(first_elem);
     }
     long long strt = tim();
-    while (que.size() && tim() - strt < tl){
-        ++visited_nodes;
+    while (que.size() && *visited_nodes < N_MAX_PHASE1_NODES){
         elem = que.top();
         que.pop();
         sol_size = elem.solution.size();
@@ -663,7 +731,14 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
             }
             a_star_elem n_elem;
             move_sticker(elem.stickers, n_elem.stickers, mov);
-            dis = predict_phase1(n_elem.stickers);
+            #if USE_FAST_MODIFICATION
+                move_idxes_phase1(elem.idxes, n_elem.idxes, mov_idx);
+            #endif
+            #if USE_FAST_MODIFICATION
+                dis = predict_phase1(n_elem.stickers, *visited_nodes, n_elem.idxes);
+            #else
+                dis = predict_phase1(n_elem.stickers, *visited_nodes);
+            #endif
             n_elem.f = sol_size + 1 + dis;
             for (i = 0; i < sol_size; ++i)
                 n_elem.solution.push_back(elem.solution[i]);
@@ -673,9 +748,11 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
                 for (i = 0; i < (int)n_elem.solution.size(); ++i)
                     solution.push_back(n_elem.solution[i]);
                 res.push_back(solution);
+                min_solution_length = min(min_solution_length, (int)solution.size());
             }
             que.push(n_elem);
         }
+        ++(*visited_nodes);
     }
     return res;
 }
@@ -683,11 +760,11 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, long long tl){
 vector<vector<int>> solver(const int stickers[n_stickers]){
     int tmp_stickers[n_stickers];
     int i, j, k;
-    int sum_visited_nodes;
+    int sum_visited_nodes, visited_nodes;
     vector<solver_elem> phase0_solutions;
     vector<vector<int>> empty_res;
     visited_nodes = 0;
-    vector<vector<int>> solution0 = phase0(stickers, 1000);
+    vector<vector<int>> solution0 = phase0(stickers, &visited_nodes);
     sum_visited_nodes = visited_nodes;
     if (solution0.size() == 0){
         cerr << " no solution found in phase0" << endl;
@@ -707,33 +784,149 @@ vector<vector<int>> solver(const int stickers[n_stickers]){
         phase0_solutions.push_back(elem);
     }
     visited_nodes = 0;
-    vector<vector<int>> res = phase1(phase0_solutions, 4000);
+    vector<vector<int>> res = phase1(phase0_solutions, &visited_nodes);
     sum_visited_nodes += visited_nodes;
     if (res.size() == 0){
         cerr << " no solution found in phase1" << endl;
         return empty_res;
     }
-    cerr << " phase1 searched; " << res.size() << "solutions found; visiited " << visited_nodes << " nodes" << endl;
+    cerr << " phase1 " << res.size() << " solutions found; visiited " << visited_nodes << " nodes" << endl;
     //cout << sum_visited_nodes << endl;
     return res;
 }
+
+bool check_solvability(int stickers[]){
+    int i, j;
+    // 1. check the numnber of each colors
+    int n_colors[6];
+    for (i = 0; i < 6; ++i)
+        n_colors[i] = 0;
+    for (i = 0; i < n_stickers; ++i){
+        if (0 <= stickers[i] && stickers[i] < 6)
+            ++n_colors[stickers[i]];
+        else
+            return false;
+    }
+    // 2. check all parts appears
+    int co[n_corners], cp[n_corners], eo[n_edges], ep[n_edges];
+    for (i = 0; i < n_corners; ++i){
+        co[i] = IDX_UNDEFINED;
+        cp[i] = IDX_UNDEFINED;
+    }
+    for (i = 0; i < n_edges; ++i){
+        eo[i] = IDX_UNDEFINED;
+        ep[i] = IDX_UNDEFINED;
+    }
+    sticker2arr(stickers, co, cp, eo, ep);
+    for (i = 0; i < n_corners; ++i){
+        if (co[i] == IDX_UNDEFINED || cp[i] == IDX_UNDEFINED)
+            return false;
+    }
+    for (i = 0; i < n_edges; ++i){
+        if (eo[i] == IDX_UNDEFINED || ep[i] == IDX_UNDEFINED)
+            return false;
+    }
+    for (i = 0; i < n_corners; ++i){
+        for (j = i + 1; j < n_corners; ++j){
+            if (cp[i] == cp[j])
+                return false;
+        }
+    }
+    for (i = 0; i < n_edges; ++i){
+        for (j = i + 1; j < n_edges; ++j){
+            if (ep[i] == ep[j])
+                return false;
+        }
+    }
+    // 3. check parity
+    int eo_sum = 0;
+    for (i = 0; i < n_edges; ++i)
+        eo_sum += eo[i];
+    if (eo_sum % 2)
+        return false;
+    int co_sum = 0;
+    for (i = 0; i < n_corners; ++i)
+        co_sum += co[i];
+    if (co_sum % 3)
+        return false;
+    int ep_n_replace = 0;
+    for (i = 0; i < n_edges; ++i){
+        if (ep[i] != i){
+            for (j = i + 1; j < n_edges; ++j){
+                if (ep[j] == ep[i]){
+                    ++ep_n_replace;
+                    swap(ep[i], ep[j]);
+                }
+            }
+        }
+    }
+    if (ep_n_replace % 2)
+        return false;
+    int cp_n_replace = 0;
+    for (i = 0; i < n_corners; ++i){
+        if (cp[i] != i){
+            for (j = i + 1; j < n_corners; ++j){
+                if (cp[j] == cp[i]){
+                    ++cp_n_replace;
+                    swap(cp[i], cp[j]);
+                }
+            }
+        }
+    }
+    if (cp_n_replace % 2)
+        return false;
+    return true;
+}
+
+// set 0 to execute without test
+#define TEST_FLAG 0
+
+#if TEST_FLAG != 0
+    #define W 0
+    #define G 1
+    #define R 2
+    #define B 3
+    #define O 4
+    #define Y 5
+#endif
 
 int main(){
     init();
     cerr << "solver initialized" << endl;
 
-    //int stickers[n_stickers] = {4, 4, 5, 2, 0, 2, 1, 5, 0, 0, 1, 3, 5, 1, 0, 2, 3, 4, 4, 0, 4, 4, 2, 3, 0, 1, 2, 3, 1, 5, 5, 3, 0, 3, 0, 0, 1, 5, 2, 3, 4, 4, 3, 2, 1, 5, 4, 1, 3, 5, 2, 2, 1, 5};
-    //int stickers[n_stickers] = {5, 2, 2, 4, 0, 5, 0, 5, 1, 4, 1, 5, 3, 1, 0, 1, 5, 1, 2, 3, 5, 3, 2, 4, 0, 5, 2, 3, 1, 1, 1, 3, 0, 0, 2, 3, 4, 3, 3, 4, 4, 2, 4, 1, 0, 4, 4, 2, 0, 5, 2, 5, 0, 3};
-    //string scramble = "L B2 L2 D2 B L2 F' U2 R2 U2 F2 R2 U' F L2 B' D U2 R U2";
-    //int stickers[n_stickers] = {4, 5, 1, 5, 0, 0, 5, 3, 4, 1, 5, 0, 2, 1, 1, 1, 3, 3, 3, 3, 2, 4, 2, 2, 4, 1, 2, 0, 4, 5, 1, 3, 0, 0, 1, 5, 1, 2, 2, 4, 4, 3, 2, 0, 0, 4, 4, 5, 2, 5, 0, 3, 5, 3};
-    //string scramble = "L U2 F2 R' U2 B2 R' D2 L2 F2 U2 D R' F' D' F2 R B2 U";
-    //cerr << "scramble: " << scramble << endl;
-    int stickers[n_stickers];
+    #if TEST_FLAG == 0
+        int stickers[n_stickers];
+    #elif TEST_FLAG == 1
+        int stickers[n_stickers] = {4, 4, 5, 2, 0, 2, 1, 5, 0, 0, 1, 3, 5, 1, 0, 2, 3, 4, 4, 0, 4, 4, 2, 3, 0, 1, 2, 3, 1, 5, 5, 3, 0, 3, 0, 0, 1, 5, 2, 3, 4, 4, 3, 2, 1, 5, 4, 1, 3, 5, 2, 2, 1, 5};
+    #elif TEST_FLAG == 2
+        int stickers[n_stickers] = {5, 2, 2, 4, 0, 5, 0, 5, 1, 4, 1, 5, 3, 1, 0, 1, 5, 1, 2, 3, 5, 3, 2, 4, 0, 5, 2, 3, 1, 1, 1, 3, 0, 0, 2, 3, 4, 3, 3, 4, 4, 2, 4, 1, 0, 4, 4, 2, 0, 5, 2, 5, 0, 3};
+    #elif TEST_FLAG == 3 // failed example
+        int stickers[n_stickers] = {Y, Y, Y, O, R, O, W, W, W, B, G, G, R, W, O, B, B, G, R, W, R, B, G, B, O, Y, O, G, B, B, R, Y, O, G, G, B, R, Y, R, G, B, G, O, W, O, W, W, W, R, O, R, Y, Y, Y};
+    #elif TEST_FLAG == 4 // error example; 1EO at UF
+        int stickers[n_stickers] = {W, W, W, W, W, W, W, G, W, G, W, G, G, G, G, G, G, G, R, R, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
+    #elif TEST_FLAG == 5 // error example; 1CO at UFR
+        int stickers[n_stickers] = {W, W, W, W, W, W, W, W, G, G, G, R, G, G, G, G, G, G, W, R, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
+    #elif TEST_FLAG == 6 // error example; UR and UF is same
+        int stickers[n_stickers] = {W, W, W, W, W, W, W, W, W, G, G, G, G, G, G, G, G, G, R, G, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
+    #elif TEST_FLAG == 7 // error example; UFR and UFL is same
+        int stickers[n_stickers] = {W, W, W, W, W, W, W, W, W, G, G, O, G, G, G, G, G, G, G, R, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
+    #endif
     int i, j;
     long long strt;
+    bool solvable;
     while (true){
-        for (i = 0; i < n_stickers; ++i)
-            cin >> stickers[i];
+        #if TEST_FLAG == 0
+            for (i = 0; i < n_stickers; ++i)
+                cin >> stickers[i];
+        #endif
+        solvable = check_solvability(stickers);
+        if (!solvable){
+            cout << "ERROR This scramble is not solvable!" << endl;
+            #if TEST_FLAG != 0
+                break;
+            #endif
+            continue;
+        }
         cerr << "start!" << endl;
         strt = tim();
         vector<vector<int>> solution = solver(stickers);
@@ -744,6 +937,9 @@ int main(){
                 cout << solution[i][j] << " ";
             cout << endl;
         }
+        #if TEST_FLAG != 0
+            break;
+        #endif
     }
     return 0;
 }

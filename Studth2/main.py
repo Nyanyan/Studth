@@ -1,8 +1,8 @@
 # coding:utf-8
 print('initializing')
 from basic_functions import *
-from controller import controller
-from detector import detector
+#from controller import controller
+#from detector import detector
 from time import sleep, time
 import subprocess
 
@@ -73,6 +73,7 @@ while True:
         w, g, r, b, o, y = range(6)
         # R F2 R2 B2 L F2 R2 B2 R D2 L D' F U' B' R2 D2 F' U2 F'
         stickers = [y, b, r, y, w, w, w, r, y, r, g, g, y, g, r, y, o, o, o, b, y, y, r, w, w, b, b, b, o, r, g, b, r, r, b, o, g, g, g, w, o, o, b, g, o, b, w, g, o, y, y, w, r, w]
+        #stickers = [4, 5, 5, 1, 0, 0, 0, 3, 0, 4, 5, 4, 0, 1, 0, 3, 0, 5, 1, 3, 3, 2, 2, 2, 3, 3, 2, 2, 2, 5, 1, 3, 4, 5, 4, 2, 1, 4, 3, 5, 4, 4, 1, 1, 0, 2, 1, 4, 5, 5, 2, 0, 3, 1]
     else:
         stickers = detector()
     for i in range(6):
