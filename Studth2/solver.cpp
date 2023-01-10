@@ -757,14 +757,28 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, int *visited_nodes){
     return res;
 }
 
+void fix_sticker_direction(const int stickers[], int res[]){
+    int replacement[6];
+    replacement[stickers[4]] = 0;
+    replacement[stickers[13]] = 1;
+    replacement[stickers[22]] = 2;
+    replacement[stickers[31]] = 3;
+    replacement[stickers[40]] = 4;
+    replacement[stickers[49]] = 5;
+    for (int i = 0; i < n_stickers; ++i)
+        res[i] = replacement[stickers[i]];
+}
+
 vector<vector<int>> solver(const int stickers[n_stickers]){
+    int rotated_stickers[n_stickers];
+    fix_sticker_direction(stickers, rotated_stickers);
     int tmp_stickers[n_stickers];
     int i, j, k;
     int sum_visited_nodes, visited_nodes;
     vector<solver_elem> phase0_solutions;
     vector<vector<int>> empty_res;
     visited_nodes = 0;
-    vector<vector<int>> solution0 = phase0(stickers, &visited_nodes);
+    vector<vector<int>> solution0 = phase0(rotated_stickers, &visited_nodes);
     sum_visited_nodes = visited_nodes;
     if (solution0.size() == 0){
         cerr << " no solution found in phase0" << endl;
@@ -774,7 +788,7 @@ vector<vector<int>> solver(const int stickers[n_stickers]){
     for (i = 0; i < min(50, (int)solution0.size()); ++i){
         solver_elem elem;
         for (j = 0; j < n_stickers; ++j)
-            elem.stickers[j] = stickers[j];
+            elem.stickers[j] = rotated_stickers[j];
         for (j = 0; j < (int)solution0[i].size(); ++j){
             elem.solution.push_back(solution0[i][j]);
             move_sticker(elem.stickers, tmp_stickers, solution0[i][j]);
@@ -910,6 +924,8 @@ int main(){
         int stickers[n_stickers] = {W, W, W, W, W, W, W, W, W, G, G, G, G, G, G, G, G, G, R, G, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
     #elif TEST_FLAG == 7 // error example; UFR and UFL is same
         int stickers[n_stickers] = {W, W, W, W, W, W, W, W, W, G, G, O, G, G, G, G, G, G, G, R, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y};
+    #elif TEST_FLAG == 8 // phase1 failed
+        int stickers[n_stickers] = {B, G, G, B, W, O, W, W, Y, G, G, R, O, O, R, Y, Y, R, G, W, O, W, G, B, W, G, W, Y, O, O, Y, R, R, R, W, O, W, R, O, Y, B, Y, Y, B, B, R, G, B, O, Y, R, B, B, G};
     #endif
     int i, j;
     long long strt;
