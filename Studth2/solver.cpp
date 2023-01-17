@@ -15,6 +15,13 @@
 
 using namespace std;
 
+// 各フェーズの制限時間
+// 制限時間いっぱい解を探索する
+// 制限時間超過時に解が1つ以上見つかっていれば探索終了
+// 制限時間を超過しても解が見つからない場合はノード数上限値まで探索を継続
+#define TIME_LIMIT_PHASE0 1000
+#define TIME_LIMIT_PHASE1 2000
+
 // phase0での最大ノード訪問回数
 #define N_MAX_PHASE0_NODES 50000
 
@@ -650,6 +657,8 @@ vector<vector<int>> phase0(const int stickers[n_stickers], int *visited_nodes){
     que.push(first_elem);
     long long strt = tim();
     while (que.size() && *visited_nodes < N_MAX_PHASE0_NODES && res.size() < N_MAX_PHASE0_SOLUTIONS){
+        if (tim() - strt > TIME_LIMIT_PHASE0 && res.size())
+            break;
         elem = que.top();
         que.pop();
         sol_size = elem.solution.size();
@@ -718,6 +727,8 @@ vector<vector<int>> phase1(vector<solver_elem> inputs, int *visited_nodes){
     }
     long long strt = tim();
     while (que.size() && *visited_nodes < N_MAX_PHASE1_NODES){
+        if (tim() - strt > TIME_LIMIT_PHASE1 && res.size())
+            break;
         elem = que.top();
         que.pop();
         sol_size = elem.solution.size();
@@ -893,7 +904,7 @@ bool check_solvability(int stickers[]){
 }
 
 // set 0 to execute without test
-#define TEST_FLAG 0
+#define TEST_FLAG 8
 
 #if TEST_FLAG != 0
     #define W 0
